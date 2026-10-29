@@ -17,7 +17,7 @@ const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
     <ol class="notes">
       {notes.map((n) => (
         <li>
-          <p class="meta"><time datetime={n.date}>{formatDate(lang, n.date)}</time>{n.draft && <span class="draft">{L('Draft for author review', 'লেখকের পর্যালোচনার জন্য খসড়া')}</span>}</p>
+          <p class="meta"><time datetime={n.date}>{formatDate(lang, n.date)}</time></p>
           <h2><a href={pathFor(lang, `/notes/${n.slug}/`)}>{n.title[lang]}</a></h2>
           <p class="sum">{n.summary[lang]}</p>
         </li>
@@ -33,5 +33,4 @@ const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
   h2 a { color: var(--ink); text-decoration: none; }
   h2 a:hover { color: var(--green); text-decoration: underline; text-decoration-thickness: 1px; }
   .sum { margin-top: var(--s-2); color: var(--ink-2); }
-  .draft { margin-left: var(--s-3); padding-left: var(--s-3); border-left: 2px solid var(--red); color: var(--ink); }
 </style>

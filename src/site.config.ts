@@ -3,10 +3,10 @@ export const site = {
   url: 'https://akkharlabs.com',
   name: { en: 'Akkhar Labs', bn: 'অক্ষর ল্যাবস' },
   location: { en: 'Bogura, Bangladesh', bn: 'বগুড়া, বাংলাদেশ' },
-  /** Public contact address: pending Rahat's decision. Leave null until confirmed. */
-  contactEmail: null as string | null,
-  /** Set to true on launch day. Until then every page carries noindex. */
-  launched: false,
+  /** Public contact address. */
+  contactEmail: 'contact@akkharlabs.com' as string | null,
+  /** Launched: pages are indexable (index, follow). Set to false to hide the whole site from search again. */
+  launched: true,
   links: {
     github: 'https://github.com/akkhar-labs',
     orcid: 'https://orcid.org/0009-0003-6184-5269',

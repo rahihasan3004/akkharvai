@@ -20,7 +20,7 @@ export const ui = {
     'lang.switchLabel': 'Read this page in Bengali',
     'mission': 'Working to make Bengali a new mother tongue for computers.',
     'lab.description':
-      'An independent research lab in Bogura, Bangladesh. We build computing around human language, from a Bengali instruction set architecture to efficient infrastructure for AI agents.',
+      'An independent Bangladeshi research lab in Bogura. We build computing around human language, from a Bangla (Bengali) CPU instruction set to efficient infrastructure for AI agents.',
     'footer.elsewhere': 'Elsewhere',
     'footer.copyright': '© 2026 Akkhar Labs',
     'home.label': 'Akkhar Labs home',
@@ -38,7 +38,7 @@ export const ui = {
     'lang.switchLabel': 'এই পাতাটি ইংরেজিতে পড়ুন',
     'mission': 'বাংলা ভাষাকে কম্পিউটারের নতুন মাতৃভাষা করার লক্ষ্যে কার্যরত।',
     'lab.description':
-      'বগুড়া, বাংলাদেশের একটি স্বাধীন গবেষণাগার। আমরা মানুষের ভাষাকে কেন্দ্র করে কম্পিউটিং গড়ে তুলি: বাংলা নির্দেশনা-সেট স্থাপত্য থেকে শুরু করে এআই এজেন্টের জন্য দক্ষ অবকাঠামো পর্যন্ত।',
+      'বগুড়ার একটি স্বাধীন বাংলাদেশি গবেষণাগার। আমরা মানুষের ভাষাকে কেন্দ্র করে কম্পিউটিং গড়ে তুলি: বাংলা সিপিইউ নির্দেশনা-সেট থেকে শুরু করে এআই এজেন্টের জন্য দক্ষ অবকাঠামো পর্যন্ত।',
     'footer.elsewhere': 'অন্যত্র',
     'footer.copyright': '© ২০২৬ অক্ষর ল্যাবস',
     'home.label': 'অক্ষর ল্যাবস প্রথম পাতা',

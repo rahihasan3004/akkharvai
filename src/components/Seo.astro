@@ -1,6 +1,7 @@
 ---
 import { site } from '../site.config';
 import { basePath, pathFor, type Lang } from '../i18n/ui';
+import { siteKeywords } from '../data/discovery';
 
 interface Props {
   /** Page title without the site suffix. Omit on the home page. */
@@ -14,11 +15,13 @@ interface Props {
   jsonld?: object[];
   /** Google Scholar meta tags (Highwire Press), e.g. { citation_title: '...', citation_author: ['...'] } */
   scholar?: Record<string, string | string[]>;
+  /** Page-specific search phrases, added in front of the site-wide ones. */
+  keywords?: string[];
 }
 
-const { title, description, lang, noindex = false, ogType = 'website', jsonld = [], scholar } = Astro.props;
+const { title, description, lang, noindex = false, ogType = 'website', jsonld = [], scholar, keywords = [] } = Astro.props;
 const name = site.name[lang];
-const tagline = lang === 'bn' ? 'বাংলা-ভিত্তিক কম্পিউটিং ও এআই অবকাঠামো গবেষণা' : 'Research in Bengali-native computing and AI infrastructure';
+const tagline = lang === 'bn' ? 'বাংলা কম্পিউটিং ও এআই অবকাঠামো নিয়ে বাংলাদেশি গবেষণাগার' : 'Bangladeshi research lab for Bangla computing and AI infrastructure';
 const fullTitle = title ? `${title} — ${name}` : `${name} — ${tagline}`;
 const path = basePath(Astro.url);
 const canonical = new URL(pathFor(lang, path), site.url).href;
@@ -26,6 +29,7 @@ const enUrl = new URL(pathFor('en', path), site.url).href;
 const bnUrl = new URL(pathFor('bn', path), site.url).href;
 const robots = noindex || !site.launched ? 'noindex, nofollow' : 'index, follow';
 const ogImage = new URL(`/og/${lang}${path === '/' ? '/index' : path.replace(/\/$/, '')}.png`, site.url).href;
+const allKeywords = [...new Set([...keywords, ...siteKeywords])].join(', ');
 const scholarTags = Object.entries(scholar ?? {}).flatMap(([k, v]) => (Array.isArray(v) ? v : [v]).map((c) => ({ name: k, content: c })));
 ---
 <title>{fullTitle}</title>
@@ -35,6 +39,11 @@ const scholarTags = Object.entries(scholar ?? {}).flatMap(([k, v]) => (Array.isA
 <link rel="alternate" hreflang="bn" href={bnUrl} />
 <link rel="alternate" hreflang="x-default" href={enUrl} />
 <meta name="robots" content={robots} />
+<meta name="keywords" content={allKeywords} />
+<meta name="author" content={lang === 'bn' ? 'রাহাত হাসান, অক্ষর ল্যাবস' : 'Rahat Hasan, Akkhar Labs'} />
+<link rel="alternate" type="text/plain" href="/llms.txt" title="Akkhar Labs summary for AI assistants (llms.txt)" />
+<link rel="alternate" type="application/rss+xml" href={pathFor(lang, '/news/rss.xml')} title={lang === 'bn' ? 'অক্ষর ল্যাবস: সংবাদ' : 'Akkhar Labs: News'} />
+<link rel="alternate" type="application/rss+xml" href={pathFor(lang, '/notes/rss.xml')} title={lang === 'bn' ? 'অক্ষর ল্যাবস: নোট' : 'Akkhar Labs: Notes'} />
 <meta property="og:site_name" content={name} />
 <meta property="og:title" content={fullTitle} />
 <meta property="og:description" content={description} />
@@ -46,6 +55,8 @@ const scholarTags = Object.entries(scholar ?? {}).flatMap(([k, v]) => (Array.isA
 <meta property="og:locale" content={lang === 'bn' ? 'bn_BD' : 'en_US'} />
 <meta property="og:locale:alternate" content={lang === 'bn' ? 'en_US' : 'bn_BD'} />
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImage} />
 {scholarTags.map((t) => <meta name={t.name} content={t.content} />)}
 {jsonld.map((o) => <script type="application/ld+json" set:html={JSON.stringify(o)} />)}

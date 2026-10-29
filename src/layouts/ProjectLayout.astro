@@ -6,6 +6,7 @@ import { pathFor, type Lang } from '../i18n/ui';
 import { areas, project, projects, publications, type ProjectSlug } from '../data/lab';
 import { formatDate } from '../lib/format';
 import { site } from '../site.config';
+import { projectKeywords } from '../data/discovery';
 
 interface Props {
   lang: Lang;
@@ -44,8 +45,11 @@ const ld: Record<string, unknown> = {
 if (p.repo && schemaType.startsWith('Software')) ld.codeRepository = p.repo;
 if (p.language && schemaType === 'SoftwareSourceCode') ld.programmingLanguage = p.language;
 if (p.license) ld.license = p.license;
+const kw = projectKeywords[slug];
+ld.keywords = kw.join(', ');
+ld.isPartOf = p.area === 'bengali-native-computing' ? { '@id': `${site.url}/ekushey/#project` } : { '@id': `${site.url}/#website` };
 ---
-<Base lang={lang} title={`${p.name[lang]}: ${p.kind[lang]}`} description={description} jsonld={[ld]} ogType="article">
+<Base lang={lang} title={`${p.name[lang]}: ${p.kind[lang]}`} description={description} jsonld={[ld]} keywords={[p.name.en, ...(p.name.bn !== p.name.en ? [p.name.bn] : []), ...kw]} ogType="article">
   <PageHeader
     lang={lang}
     crumbs={[{ label: L('Projects', 'প্রকল্প'), href: '/projects/' }, { label: p.name[lang] }]}

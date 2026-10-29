@@ -59,12 +59,27 @@ npm run build && npm run og
 compares it with binaries compiled from the C repositories. With Boyon and Shimu cloned and built next
 to this folder, run `npm run verify:nirdeshika`.
 
+## Discovery: search engines and AI assistants
+
+| File | What it does |
+| --- | --- |
+| `src/data/discovery.ts` | Search phrases (incl. "Bangla" synonyms), quotable summaries, and the Q&A shown on /about/ |
+| `src/pages/llms.txt.ts`, `llms-full.txt.ts` | `/llms.txt` (site map for AI assistants) and `/llms-full.txt` (all facts in one file), generated from `src/data` |
+| `public/robots.txt` | Welcomes search and AI crawlers by name; keeps /specimen/ out |
+| `public/<32 hex>.txt` | IndexNow key. `npm run build && npm run indexnow` after each deploy pings Bing (ChatGPT search, Copilot) |
+
+Schema.org on every page: ResearchOrganization + WebSite (home), ProfilePage/Person (founder), ResearchProject
+(Project Ekushey), FAQPage (about), TechArticle/SoftwareSourceCode (projects), ScholarlyArticle (publications).
+
 ## Before launch
 
 1. Set `contactEmail` in `src/site.config.ts`.
 2. Set `launched: true` in `src/site.config.ts` (removes `noindex` from every page).
 3. Point akkharlabs.com's nameservers (at Spaceship) to Cloudflare and connect Cloudflare Pages:
    build command `npm run build`, output directory `dist`.
+4. In Cloudflare: Security → Bots → turn **off** "Block AI bots" and "Manage your robots.txt" (AI Crawl Control),
+   or AI assistants will be refused even though `public/robots.txt` allows them.
+5. Add the site to Google Search Console and Bing Webmaster Tools, submit `sitemap-index.xml`, then run `npm run indexnow`.
 
 ## Logo
 

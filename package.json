@@ -9,6 +9,7 @@
     "preview": "astro preview",
     "check": "astro check",
     "og": "node scripts/og.cjs",
+    "indexnow": "node scripts/indexnow.mjs",
     "verify:nirdeshika": "node --experimental-strip-types scripts/verify-nirdeshika.mjs ../Boyon/bin/boyon ../Shimu/bin/shimu ../Boyon/examples 2000"
   },
   "dependencies": {

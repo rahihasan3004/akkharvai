@@ -4,12 +4,25 @@ import PageHeader from '../components/PageHeader.astro';
 import Section from '../components/Section.astro';
 import { pathFor, t, type Lang } from '../i18n/ui';
 import { rahat } from '../data/lab';
+import { faq, summaries } from '../data/discovery';
+import { site } from '../site.config';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const ld = [
+  {
+    '@context': 'https://schema.org', '@type': 'AboutPage',
+    url: new URL(pathFor(lang, '/about/'), site.url).href, inLanguage: lang,
+    about: { '@id': `${site.url}/#org` }, description: summaries.lab[lang],
+  },
+  {
+    '@context': 'https://schema.org', '@type': 'FAQPage', inLanguage: lang,
+    mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q[lang], acceptedAnswer: { '@type': 'Answer', text: f.a[lang] } })),
+  },
+];
 ---
-<Base lang={lang} title={L('About', 'পরিচিতি')} description={L('Akkhar Labs is an independent research and engineering lab in Bogura, Bangladesh, designing computing around human language.', 'অক্ষর ল্যাবস বগুড়া, বাংলাদেশের একটি স্বাধীন গবেষণা ও প্রকৌশল ল্যাব, যা মানুষের ভাষাকে ঘিরে কম্পিউটিং নকশা করে।')}>
+<Base lang={lang} title={L('About', 'পরিচিতি')} description={L('Akkhar Labs is an independent Bangladeshi research and engineering lab in Bogura, designing computing around human language: a Bangla CPU, a Bangla programming language and efficient AI infrastructure.', 'অক্ষর ল্যাবস বগুড়া, বাংলাদেশের একটি স্বাধীন গবেষণা ও প্রকৌশল ল্যাব, যা মানুষের ভাষাকে ঘিরে কম্পিউটিং নকশা করে।')} jsonld={ld}>
   <PageHeader lang={lang} crumbs={[{ label: L('About', 'পরিচিতি') }]} title={L('About Akkhar Labs', 'অক্ষর ল্যাবস পরিচিতি')} lead={t(lang, 'lab.description')} />
 
   <Section id="mission" title={L('Mission', 'লক্ষ্য')}>
@@ -43,6 +56,17 @@ const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
     <p class="meta">{L('Akkhar Labs is currently the work of one person. Collaborators will be listed here as they join.', 'অক্ষর ল্যাবস বর্তমানে একজন মানুষের কাজ। সহযোগীরা যোগ দিলে তাঁদের নাম এখানে থাকবে।')}</p>
   </Section>
 
+  <Section id="questions" title={L('Common questions', 'সাধারণ প্রশ্ন')}>
+    <dl class="faq">
+      {faq.map((f) => (
+        <div>
+          <dt>{f.q[lang]}</dt>
+          <dd>{f.a[lang]}</dd>
+        </div>
+      ))}
+    </dl>
+  </Section>
+
   <Section id="collaborate" title={L('Collaborate', 'সহযোগিতা')}>
     <div class="prose measure">
       <p>{L('Akkhar Labs is looking for engineers, researchers and contributors interested in:', 'অক্ষর ল্যাবস এমন প্রকৌশলী, গবেষক ও অবদানকারী খুঁজছে, যাঁরা আগ্রহী:')}</p>
@@ -63,4 +87,8 @@ const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
   .people { list-style: none; padding: 0; border-top: var(--hairline); margin-bottom: var(--s-4); }
   .people li { display: flex; flex-direction: column; padding-block: var(--s-3); border-bottom: var(--hairline); }
   .nm { font-family: var(--font-serif); font-weight: 600; font-size: var(--fs-4); }
+  .faq { border-top: var(--hairline); max-width: var(--measure); }
+  .faq > div { padding-block: var(--s-4); border-bottom: var(--hairline); }
+  .faq dt { font-family: var(--font-serif); font-weight: 600; font-size: var(--fs-3); line-height: 1.35; }
+  .faq dd { margin: var(--s-2) 0 0; }
 </style>

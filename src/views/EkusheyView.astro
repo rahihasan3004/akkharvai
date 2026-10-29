@@ -4,13 +4,29 @@ import PageHeader from '../components/PageHeader.astro';
 import Section from '../components/Section.astro';
 import { pathFor, type Lang } from '../i18n/ui';
 import { projects, plannedLayers } from '../data/lab';
+import { site } from '../site.config';
+import { summaries } from '../data/discovery';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
 const built = projects.filter((p) => p.area === 'bengali-native-computing');
+const ld = {
+  '@context': 'https://schema.org', '@type': 'ResearchProject', '@id': `${site.url}/ekushey/#project`,
+  name: 'Project Ekushey', alternateName: ['প্রকল্প একুশে', 'Bangla computer', 'Bengali computing stack'],
+  description: summaries.ekushey.en,
+  url: new URL(pathFor(lang, '/ekushey/'), site.url).href,
+  parentOrganization: { '@id': `${site.url}/#org` },
+  founder: { '@id': `${site.url}/people/rahat-hasan/#person` },
+  location: { '@type': 'Place', name: 'Bogura, Bangladesh' },
+  keywords: 'Bangla computer, Bangla CPU, Bangla programming language, Bengali computing, Nirdeshika-16, Kotha, Matrika OS',
+  hasPart: [
+    ...built.map((p) => ({ '@type': 'CreativeWork', name: p.name.en, alternateName: p.name.bn, description: p.summary.en, url: new URL(`/projects/${p.slug}/`, site.url).href, creativeWorkStatus: p.status.en })),
+    ...plannedLayers.map((l) => ({ '@type': 'CreativeWork', name: l.name.en, alternateName: l.name.bn, genre: l.layer.en, description: l.text.en, creativeWorkStatus: l.status.en })),
+  ],
+};
 ---
-<Base lang={lang} title={L('Project Ekushey', 'প্রকল্প একুশে')} description={L('Project Ekushey is a Bengali computing stack built from first principles, named after Ekushey February and the 1952 Language Movement.', 'প্রকল্প একুশে মৌলিক নীতি থেকে গড়ে তোলা একটি বাংলা কম্পিউটিং স্ট্যাক; নামকরণ একুশে ফেব্রুয়ারি ও ১৯৫২ সালের ভাষা আন্দোলনের স্মরণে।')}>
+<Base lang={lang} title={L('Project Ekushey', 'প্রকল্প একুশে')} description={L('Project Ekushey is a Bangla (Bengali) computing stack built from first principles, named after Ekushey February and the 1952 Language Movement.', 'প্রকল্প একুশে মৌলিক নীতি থেকে গড়ে তোলা একটি বাংলা কম্পিউটিং স্ট্যাক; নামকরণ একুশে ফেব্রুয়ারি ও ১৯৫২ সালের ভাষা আন্দোলনের স্মরণে।')} jsonld={[ld]} keywords={['Bangla computer', 'বাংলা কম্পিউটার', 'Bangla CPU', 'Bangla programming language', 'Kotha programming language', 'Bengali operating system']}>
   <PageHeader lang={lang} crumbs={[{ label: L('Project Ekushey', 'প্রকল্প একুশে') }]} eyebrow={L('The Bengali computing stack', 'বাংলা কম্পিউটিং স্ট্যাক')}
     title={L('Project Ekushey', 'প্রকল্প একুশে')}
     lead={L('Not a translation layer, not a keyboard wrapper, not a Bengali font on top of an English system. A computing stack designed in Bengali, from the instruction set up.', 'অনুবাদের স্তর নয়, কিবোর্ডের মোড়ক নয়, ইংরেজি ব্যবস্থার ওপর বাংলা ফন্টও নয়। নির্দেশনা-সেট থেকে শুরু করে বাংলায় নকশা করা একটি কম্পিউটিং স্ট্যাক।')} />

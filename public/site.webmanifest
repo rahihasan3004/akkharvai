@@ -1,6 +1,9 @@
 {
   "name": "Akkhar Labs",
   "short_name": "Akkhar Labs",
+  "description": "Akkhar Labs is an independent Bangladeshi research lab in Bogura working on Bangla (Bengali) native computing and efficient AI infrastructure.",
+  "lang": "en",
+  "start_url": "/",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }

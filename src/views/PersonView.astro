@@ -7,21 +7,36 @@ import { pathFor, type Lang } from '../i18n/ui';
 import { rahat, projects, publications } from '../data/lab';
 import { formatDate } from '../lib/format';
 import { site } from '../site.config';
+import { summaries, personTopics } from '../data/discovery';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const pageUrl = new URL(pathFor(lang, '/people/rahat-hasan/'), site.url).href;
 const ld = {
-  '@context': 'https://schema.org', '@type': 'Person', '@id': `${site.url}/people/rahat-hasan/#person`,
-  name: 'Rahat Hasan', alternateName: 'রাহাত হাসান', jobTitle: rahat.role.en,
-  affiliation: { '@id': `${site.url}/#org` }, worksFor: { '@id': `${site.url}/#org` },
-  homeLocation: { '@type': 'Place', name: 'Bogura, Bangladesh' },
-  identifier: `https://orcid.org/${rahat.orcid}`,
-  sameAs: [`https://orcid.org/${rahat.orcid}`, rahat.github],
-  url: new URL(pathFor(lang, '/people/rahat-hasan/'), site.url).href,
+  '@context': 'https://schema.org', '@type': 'ProfilePage', '@id': `${pageUrl}#page`,
+  url: pageUrl, name: `${rahat.name[lang]} — ${site.name[lang]}`, inLanguage: lang,
+  isPartOf: { '@id': `${site.url}/#website` },
+  mainEntity: {
+    '@type': 'Person', '@id': `${site.url}/people/rahat-hasan/#person`,
+    name: 'Rahat Hasan', alternateName: ['রাহাত হাসান', 'Rahat Hasan (Akkhar Labs)', 'rahatarch'],
+    description: summaries.person.en,
+    disambiguatingDescription: 'Bangladeshi AI and computer-systems researcher, founder of Akkhar Labs, designer of the Nirdeshika-16 Bangla CPU instruction set',
+    jobTitle: [rahat.role.en, 'AI and systems researcher'],
+    affiliation: { '@id': `${site.url}/#org` }, worksFor: { '@id': `${site.url}/#org` },
+    nationality: { '@type': 'Country', name: 'Bangladesh' },
+    homeLocation: { '@type': 'Place', name: 'Bogura, Bangladesh', address: { '@type': 'PostalAddress', addressLocality: 'Bogura', addressCountry: 'BD' } },
+    knowsAbout: personTopics,
+    knowsLanguage: ['bn', 'en'],
+    identifier: { '@type': 'PropertyValue', propertyID: 'ORCID', value: rahat.orcid, url: `https://orcid.org/${rahat.orcid}` },
+    sameAs: [`https://orcid.org/${rahat.orcid}`, rahat.github],
+    url: new URL('/people/rahat-hasan/', site.url).href,
+    mainEntityOfPage: pageUrl,
+    subjectOf: publications.map((p) => ({ '@type': 'ScholarlyArticle', name: p.title, url: new URL(`/publications/${p.slug}/`, site.url).href, ...(p.doi ? { sameAs: `https://doi.org/${p.doi}` } : {}) })),
+  },
 };
 ---
-<Base lang={lang} title={rahat.name[lang]} description={L('Rahat Hasan is the founder and systems architect of Akkhar Labs, and the author of Nirdeshika-16, Boyon, Shimu, ZRCP and HashedContext.', 'রাহাত হাসান অক্ষর ল্যাবসের প্রতিষ্ঠাতা ও সিস্টেম স্থপতি; নির্দেশিকা-১৬, বয়ন, শিমু, ZRCP ও HashedContext-এর প্রণেতা।')} jsonld={[ld]}>
+<Base lang={lang} title={L('Rahat Hasan, Bangladeshi AI and systems researcher', 'রাহাত হাসান, বাংলাদেশি এআই ও সিস্টেম গবেষক')} description={L('Rahat Hasan is a young Bangladeshi AI and systems researcher, founder of Akkhar Labs, and the author of Nirdeshika-16 (a Bangla CPU instruction set), Boyon, Shimu, ZRCP and HashedContext.', 'রাহাত হাসান একজন তরুণ বাংলাদেশি এআই ও সিস্টেম গবেষক, অক্ষর ল্যাবসের প্রতিষ্ঠাতা; নির্দেশিকা-১৬ (বাংলা সিপিইউ নির্দেশনা-সেট), বয়ন, শিমু, ZRCP ও HashedContext-এর প্রণেতা।')} jsonld={[ld]} keywords={['Rahat Hasan', 'রাহাত হাসান', 'young AI researcher', 'Bangladeshi AI researcher', 'AI researcher from Bangladesh', 'Bangla CPU designer', 'তরুণ এআই গবেষক']}>
   <PageHeader lang={lang} crumbs={[{ label: L('About', 'পরিচিতি'), href: '/about/' }, { label: rahat.name[lang] }]} eyebrow={rahat.role[lang]} title={rahat.name[lang]}>
     <div class="head">
       <div class="portrait" role="img" aria-label={L('Portrait not yet available', 'প্রতিকৃতি এখনো নেই')}>
@@ -39,8 +54,8 @@ const ld = {
   <Section id="bio" title={L('Biography', 'জীবনী')}>
     <div class="prose measure">
       <p>{L(
-        'Rahat Hasan is a systems architect from Bogura, Bangladesh, and the founder of Akkhar Labs. He designed the Nirdeshika-16 instruction set architecture, the Akkhar-Hex number system and the Akkhar-Lipi 8 character encoding, and wrote the Boyon assembler, the Shimu simulator and the Nirdeshika SDK.',
-        'রাহাত হাসান বগুড়া, বাংলাদেশের একজন সিস্টেম স্থপতি এবং অক্ষর ল্যাবসের প্রতিষ্ঠাতা। তিনি নির্দেশিকা-১৬ নির্দেশনা-সেট স্থাপত্য, অক্ষর-হেক্স সংখ্যা পদ্ধতি ও অক্ষর-লিপি ৮ অক্ষর এনকোডিংয়ের নকশা করেছেন, এবং বয়ন অ্যাসেম্বলার, শিমু সিমুলেটর ও নির্দেশিকা এসডিকে লিখেছেন।'
+        'Rahat Hasan is a young Bangladeshi AI and systems researcher from Bogura, Bangladesh, and the founder of Akkhar Labs. He designed the Nirdeshika-16 instruction set architecture, the Akkhar-Hex number system and the Akkhar-Lipi 8 character encoding, and wrote the Boyon assembler, the Shimu simulator and the Nirdeshika SDK.',
+        'রাহাত হাসান বগুড়া, বাংলাদেশের একজন তরুণ এআই ও সিস্টেম গবেষক এবং অক্ষর ল্যাবসের প্রতিষ্ঠাতা। তিনি নির্দেশিকা-১৬ নির্দেশনা-সেট স্থাপত্য, অক্ষর-হেক্স সংখ্যা পদ্ধতি ও অক্ষর-লিপি ৮ অক্ষর এনকোডিংয়ের নকশা করেছেন, এবং বয়ন অ্যাসেম্বলার, শিমু সিমুলেটর ও নির্দেশিকা এসডিকে লিখেছেন।'
       )}</p>
       <p>{L(
         'His work on AI infrastructure began with the Zero-Redundancy Context Protocol (ZRCP) and continued with HashedContext, which studies how removing redundant file context from coding agents affects GPU memory and serving concurrency.',

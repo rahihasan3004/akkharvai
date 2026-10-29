@@ -8,6 +8,7 @@ import { t, pathFor, type Lang } from '../i18n/ui';
 import { areas, projects, publications, news, rahat, type AreaSlug } from '../data/lab';
 import { formatDate } from '../lib/format';
 import { site } from '../site.config';
+import { summaries, labTopics, siteKeywords } from '../data/discovery';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -20,16 +21,23 @@ const jsonld = [
     '@type': 'ResearchOrganization',
     '@id': `${site.url}/#org`,
     name: 'Akkhar Labs',
-    alternateName: ['অক্ষর ল্যাবস', 'Akkhar-Labs'],
+    alternateName: ['অক্ষর ল্যাবস', 'Akkhar-Labs', 'AkkharLabs', 'Akkhar Labs Bangladesh'],
     url: site.url,
     logo: `${site.url}/icon-512.png`,
-    description: t('en', 'lab.description'),
+    image: `${site.url}/og/en/index.png`,
+    description: summaries.lab.en,
+    disambiguatingDescription: 'Bangladeshi research lab for Bangla (Bengali) native computing and AI infrastructure',
     slogan: t('bn', 'mission'),
     foundingLocation: { '@type': 'Place', name: 'Bogura, Bangladesh' },
-    address: { '@type': 'PostalAddress', addressLocality: 'Bogura', addressCountry: 'BD' },
-    founder: { '@type': 'Person', '@id': `${site.url}/people/rahat-hasan/#person`, name: 'Rahat Hasan', sameAs: [`https://orcid.org/${rahat.orcid}`, rahat.github] },
-    knowsAbout: ['Instruction set architecture', 'Bengali computing', 'Assemblers', 'CPU simulation', 'LLM inference', 'KV-cache', 'Context management for AI agents'],
-    sameAs: ['https://github.com/akkhar-labs'],
+    address: { '@type': 'PostalAddress', addressLocality: 'Bogura', addressRegion: 'Rajshahi Division', addressCountry: 'BD' },
+    areaServed: 'Worldwide',
+    founder: { '@type': 'Person', '@id': `${site.url}/people/rahat-hasan/#person`, name: 'Rahat Hasan', url: `${site.url}/people/rahat-hasan/`, sameAs: [`https://orcid.org/${rahat.orcid}`, rahat.github] },
+    employee: { '@id': `${site.url}/people/rahat-hasan/#person` },
+    knowsAbout: labTopics,
+    knowsLanguage: ['bn', 'en'],
+    keywords: siteKeywords.join(', '),
+    ...(site.contactEmail ? { email: site.contactEmail } : {}),
+    sameAs: [site.links.github],
   },
   {
     '@context': 'https://schema.org',
@@ -37,8 +45,11 @@ const jsonld = [
     '@id': `${site.url}/#website`,
     name: 'Akkhar Labs',
     url: site.url,
+    alternateName: 'অক্ষর ল্যাবস',
+    description: summaries.lab.en,
     inLanguage: ['en', 'bn'],
     publisher: { '@id': `${site.url}/#org` },
+    about: [{ '@id': `${site.url}/#org` }, { '@id': `${site.url}/ekushey/#project` }],
   },
 ];
 ---

@@ -24,7 +24,6 @@ const ld = {
     <p class="byline meta">
       <a href={pathFor(lang, '/people/rahat-hasan/')}>{rahat.name[lang]}</a> · <time datetime={n.date}>{formatDate(lang, n.date)}</time>
     </p>
-    {n.draft && <p class="draft sans">{L('Draft for author review. Adapted from Rahat Hasan’s writing in the sources listed below; not yet approved for publication.', 'লেখকের পর্যালোচনার জন্য খসড়া। নিচে উল্লিখিত উৎসে রাহাত হাসানের লেখা থেকে রূপান্তরিত; প্রকাশের জন্য এখনো অনুমোদিত নয়।')}</p>}
   </PageHeader>
   <div class="container">
     <article class="prose essay">
@@ -42,7 +41,6 @@ const ld = {
 </Base>
 <style>
   .byline { margin-top: var(--s-5); }
-  .draft { margin-top: var(--s-4); font-size: var(--fs-2); border-left: 4px solid var(--red); padding-left: var(--s-3); max-width: var(--measure); }
   .essay { max-width: var(--measure); border-top: 1px solid var(--ink); padding-top: var(--s-6); font-size: 1.1875rem; }
   .essay h2 { font-size: var(--fs-4); }
   .sources { font-family: var(--font-sans); font-size: var(--fs-2); }
