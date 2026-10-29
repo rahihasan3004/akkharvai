@@ -1,0 +1,31 @@
+---
+/** Label–value pairs separated by hairlines. Used on project and paper pages. */
+interface Item { label: string; value: string; href?: string; lang?: string }
+interface Props { items: Item[]; label?: string }
+const { items, label } = Astro.props;
+---
+<dl class="meta-row" aria-label={label}>
+  {items.map((i) => (
+    <div>
+      <dt>{i.label}</dt>
+      <dd lang={i.lang}>{i.href ? <a href={i.href}>{i.value}</a> : i.value}</dd>
+    </div>
+  ))}
+</dl>
+
+<style>
+  .meta-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    border-top: 1px solid var(--ink);
+    border-bottom: var(--hairline);
+    font-family: var(--font-sans);
+  }
+  .meta-row > div {
+    padding: var(--s-3) var(--s-4) var(--s-3) 0;
+    border-bottom: var(--hairline);
+    margin-bottom: -1px;
+  }
+  dt { font-size: var(--fs-1); color: var(--ink-2); }
+  dd { font-size: var(--fs-2); overflow-wrap: break-word; }
+</style>

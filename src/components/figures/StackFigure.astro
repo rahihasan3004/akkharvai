@@ -1,0 +1,55 @@
+---
+/** The Akkhar Stack, top to bottom, with plain-text status. Built layers carry a solid green rule. */
+import { pathFor, type Lang } from '../../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const rows = [
+  { layer: L('Programming language', 'প্রোগ্রামিং ভাষা'), name: L('Kotha', 'কথা'), status: L('In design', 'নকশা পর্যায়ে'), built: false },
+  { layer: L('Operating system', 'অপারেটিং সিস্টেম'), name: L('Matrika OS', 'মাতৃকা ওএস'), status: L('Research', 'গবেষণা পর্যায়ে'), built: false },
+  { layer: L('Kernel · file system', 'কার্নেল · ফাইল সিস্টেম'), name: L('BAPS · AKFS', 'বিএপিএস · একেএফএস'), status: L('Early design · planned', 'প্রাথমিক নকশা · পরিকল্পিত'), built: false },
+  { layer: L('Character encoding', 'অক্ষর এনকোডিং'), name: L('Akkhar-Lipi 7/8', 'অক্ষর-লিপি ৭/৮'), status: L('Planned', 'পরিকল্পিত'), built: false },
+  { layer: L('Toolchain', 'টুলচেইন'), name: L('Nirdeshika SDK', 'নির্দেশিকা এসডিকে'), status: L('Released 1.0.0', 'প্রকাশিত ১.০.০'), built: true, href: '/projects/nirdeshika-sdk/' },
+  { layer: L('Assembler · simulator', 'অ্যাসেম্বলার · সিমুলেটর'), name: L('Boyon · Shimu', 'বয়ন · শিমু'), status: L('Working', 'কার্যকর'), built: true, href: '/projects/boyon/' },
+  { layer: L('Number system', 'সংখ্যা পদ্ধতি'), name: L('Akkhar-Hex', 'অক্ষর-হেক্স'), status: L('Defined', 'সংজ্ঞায়িত'), built: true, href: '/projects/akkhar-hex/' },
+  { layer: L('Instruction set', 'নির্দেশনা-সেট'), name: L('Nirdeshika-16', 'নির্দেশিকা-১৬'), status: L('Specification complete', 'বিবরণী সম্পূর্ণ'), built: true, href: '/projects/nirdeshika-16/' },
+];
+---
+<ol class="stack" aria-label={L('The Akkhar Stack, from programming language at the top to instruction set at the bottom', 'অক্ষর স্ট্যাক, ওপরে প্রোগ্রামিং ভাষা থেকে নিচে নির্দেশনা-সেট পর্যন্ত')}>
+  {rows.map((r) => (
+    <li class:list={{ built: r.built }}>
+      <span class="layer">{r.layer}</span>
+      <span class="name">{r.href ? <a href={pathFor(lang, r.href)}>{r.name}</a> : r.name}</span>
+      <span class="status">{r.status}</span>
+    </li>
+  ))}
+</ol>
+<p class="legend meta"><span class="key built-key" aria-hidden="true"></span>{L('Built and public', 'তৈরি ও উন্মুক্ত')}<span class="key planned-key" aria-hidden="true"></span>{L('Planned or in design', 'পরিকল্পিত বা নকশা পর্যায়ে')}</p>
+<style>
+  .stack { list-style: none; padding: 0; display: grid; gap: var(--s-1); }
+  li {
+    display: grid;
+    grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: var(--s-4);
+    padding: var(--s-3) var(--s-4);
+    border: 1px dashed var(--rule);
+    border-left: 4px solid var(--rule);
+  }
+  li.built { border-style: solid; border-color: var(--rule); border-left-color: var(--green); }
+  .layer, .status { font-family: var(--font-sans); font-size: var(--fs-1); color: var(--ink-2); }
+  .name { font-size: var(--fs-4); font-weight: 600; }
+  li:not(.built) .name { font-weight: 400; color: var(--ink-2); }
+  .name a { color: inherit; text-decoration: none; }
+  .name a:hover { color: var(--green); text-decoration: underline; text-decoration-thickness: 1px; }
+  .status { text-align: right; }
+  li.built .status { color: var(--ink); }
+  .legend { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); margin-top: var(--s-3); }
+  .key { display: inline-block; width: 1.5rem; height: 0.75rem; }
+  .built-key { border: 1px solid var(--rule); border-left: 4px solid var(--green); }
+  .planned-key { border: 1px dashed var(--rule); border-left: 4px solid var(--rule); margin-left: var(--s-4); }
+  @media (max-width: 639px) {
+    li { grid-template-columns: 1fr auto; gap: var(--s-1) var(--s-3); }
+    .layer { grid-column: 1 / -1; }
+  }
+</style>

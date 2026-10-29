@@ -1,0 +1,31 @@
+---
+/** ZRCP prompt assembly order (whitepaper v1.0.0, section 7.2). */
+import { num, type Lang } from '../../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const rows = [
+  { t: L('System prompt', 'সিস্টেম প্রম্পট'), k: '' },
+  { t: L('Grounding rules', 'ভিত্তি-নিয়ম'), k: '' },
+  { t: L('Hash stubs for unchanged files', 'অপরিবর্তিত ফাইলের হ্যাশ-স্টাব'), k: 'stub' },
+  { t: L('Deduplicated conversation history', 'পুনরাবৃত্তিমুক্ত কথোপকথনের ইতিহাস'), k: '' },
+  { t: L('Current user instruction', 'ব্যবহারকারীর বর্তমান নির্দেশ'), k: '' },
+  { t: L('Authoritative current file content', 'ফাইলের বর্তমান প্রামাণ্য বিষয়বস্তু'), k: 'tail' },
+];
+---
+<ol class="order">
+  {rows.map((r, i) => (
+    <li class={r.k}><span class="n">{num(lang, i + 1)}</span><span>{r.t}</span>
+      {r.k === 'stub' && <span class="note">{L('about 80–150 tokens each', 'প্রতিটি প্রায় ৮০–১৫০ টোকেন')}</span>}
+      {r.k === 'tail' && <span class="note">{L('placed last, where recency bias helps the model', 'সবশেষে রাখা, যেখানে সাম্প্রতিকতার প্রভাব মডেলকে সাহায্য করে')}</span>}
+    </li>
+  ))}
+</ol>
+<style>
+  .order { list-style: none; padding: 0; display: grid; gap: var(--s-1); max-width: 40rem; }
+  li { display: grid; grid-template-columns: 2rem 1fr; column-gap: var(--s-3); padding: var(--s-2) var(--s-3); border: 1px solid var(--rule); font-family: var(--font-sans); font-size: var(--fs-2); }
+  .n { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .note { grid-column: 2; font-size: var(--fs-1); color: var(--ink-2); }
+  li.stub { border-style: dashed; border-color: var(--ink-2); }
+  li.tail { border: 1px solid var(--ink); border-left: 4px solid var(--green); }
+</style>

@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+import { notes } from '../data/notes';
+import { formatDate } from '../lib/format';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+---
+<Base lang={lang} title={L('Notes', 'নোট')} description={L('Lab notes from Akkhar Labs: the reasoning behind design decisions in Bengali-native computing and AI infrastructure.', 'অক্ষর ল্যাবসের ল্যাব নোট: বাংলা-ভিত্তিক কম্পিউটিং ও এআই অবকাঠামোর নকশাগত সিদ্ধান্তের পেছনের যুক্তি।')}>
+  <PageHeader lang={lang} crumbs={[{ label: L('Notes', 'নোট') }]} title={L('Notes', 'নোট')} lead={L('Short essays on why things are designed the way they are.', 'কোন কিছু কেন এভাবে নকশা করা, তা নিয়ে ছোট প্রবন্ধ।')}>
+    <p class="sans rss"><a href={pathFor(lang, '/notes/rss.xml')}>{L('RSS feed', 'আরএসএস ফিড')}</a></p>
+  </PageHeader>
+  <div class="container">
+    <ol class="notes">
+      {notes.map((n) => (
+        <li>
+          <p class="meta"><time datetime={n.date}>{formatDate(lang, n.date)}</time>{n.draft && <span class="draft">{L('Draft for author review', 'লেখকের পর্যালোচনার জন্য খসড়া')}</span>}</p>
+          <h2><a href={pathFor(lang, `/notes/${n.slug}/`)}>{n.title[lang]}</a></h2>
+          <p class="sum">{n.summary[lang]}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</Base>
+<style>
+  .rss { margin-top: var(--s-4); font-size: var(--fs-2); }
+  .notes { list-style: none; padding: 0; border-top: 1px solid var(--ink); margin-bottom: var(--s-8); }
+  .notes li { padding-block: var(--s-5); border-bottom: var(--hairline); max-width: var(--measure); }
+  h2 { font-size: var(--fs-5); margin-top: var(--s-1); }
+  h2 a { color: var(--ink); text-decoration: none; }
+  h2 a:hover { color: var(--green); text-decoration: underline; text-decoration-thickness: 1px; }
+  .sum { margin-top: var(--s-2); color: var(--ink-2); }
+  .draft { margin-left: var(--s-3); padding-left: var(--s-3); border-left: 2px solid var(--red); color: var(--ink); }
+</style>

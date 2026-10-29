@@ -1,0 +1,327 @@
+---
+/**
+ * Phase 1 review page: logo, colour, type, spacing and core components.
+ * Never indexed. Every sample uses verified Akkhar Labs facts.
+ */
+import Base from '../layouts/Base.astro';
+import MetaRow from '../components/MetaRow.astro';
+import PubEntry from '../components/PubEntry.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import tokensCss from '../styles/tokens.css?raw';
+import { contrast, parseTokens } from '../lib/contrast';
+import { num, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const other: Lang = lang === 'en' ? 'bn' : 'en';
+const n = (v: number | string) => num(lang, v);
+
+const { light, dark } = parseTokens(tokensCss);
+const colourUse: Record<string, { en: string; bn: string; text: boolean }> = {
+  paper: { en: 'Page background', bn: 'পাতার পটভূমি', text: false },
+  ink: { en: 'Body text and headings', bn: 'মূল লেখা ও শিরোনাম', text: true },
+  'ink-2': { en: 'Metadata and captions', bn: 'মেটাডেটা ও ক্যাপশন', text: true },
+  rule: { en: 'Hairlines and table rules', bn: 'সরু রেখা ও টেবিলের দাগ', text: false },
+  green: { en: 'Links, current section, focus outline', bn: 'লিংক, বর্তমান বিভাগ, ফোকাস রেখা', text: true },
+  red: { en: 'Logo, header rule, figure highlights. Never text', bn: 'লোগো, হেডারের রেখা, চিত্রের হাইলাইট। লেখায় কখনো নয়', text: false },
+};
+const colours = Object.keys(colourUse).map((name) => ({
+  name,
+  light: light[name],
+  dark: dark[name],
+  cl: contrast(light[name], light.paper),
+  cd: contrast(dark[name], dark.paper),
+  ...colourUse[name],
+}));
+
+const scale = [
+  { token: '--fs-7', px: '44', role: { en: 'Page title (h1), maximum', bn: 'পাতার শিরোনাম (h1), সর্বোচ্চ' } },
+  { token: '--fs-6', px: '35', role: { en: 'Section heading (h2)', bn: 'অংশের শিরোনাম (h2)' } },
+  { token: '--fs-5', px: '28', role: { en: 'Subheading (h3)', bn: 'উপশিরোনাম (h3)' } },
+  { token: '--fs-4', px: '22.5', role: { en: 'Lead, h4, entry titles', bn: 'ভূমিকা, h4, তালিকার শিরোনাম' } },
+  { token: '--fs-3', px: '18', role: { en: 'Body text', bn: 'মূল লেখা' } },
+  { token: '--fs-2', px: '16', role: { en: 'Interface', bn: 'ইন্টারফেস' } },
+  { token: '--fs-1', px: '14', role: { en: 'Metadata, captions', bn: 'মেটাডেটা, ক্যাপশন' } },
+];
+const spacing = [
+  ['--s-1', 4], ['--s-2', 8], ['--s-3', 12], ['--s-4', 16], ['--s-5', 24],
+  ['--s-6', 32], ['--s-7', 48], ['--s-8', 64], ['--s-9', 96],
+] as const;
+
+const sample = {
+  en: 'Nirdeshika-16: an instruction set designed in Bengali',
+  bn: 'নির্দেশিকা-১৬: বাংলায় নকশা করা একটি নির্দেশনা-সেট',
+};
+
+const reading = {
+  en: {
+    heading: 'Project Ekushey',
+    paras: [
+      'Project Ekushey is a Bengali computing stack designed from first principles, from the processor instruction set to the assembler, simulator and SDK. It is not a translation layer, and it is not a Bengali font placed on top of an English system. Its aim is to let Bengali speakers write, assemble, run and understand programs without English.',
+      'The project is named after Ekushey February, the 1952 Bengali Language Movement. Its first layer, Nirdeshika-16, is a 16-bit RISC instruction set with Bengali mnemonics, registers and numbers. Two tools already run on it: Boyon, an assembler that turns .বয়ন source files into .ব binaries, and Shimu, a simulator that executes them.',
+    ],
+  },
+  bn: {
+    heading: 'প্রকল্প একুশে',
+    paras: [
+      'প্রকল্প একুশে একটি বাংলা কম্পিউটিং স্ট্যাক, যা মৌলিক নীতি থেকে নকশা করা হয়েছে: প্রসেসরের নির্দেশনা-সেট থেকে অ্যাসেম্বলার, সিমুলেটর ও এসডিকে পর্যন্ত। এটি কোনো অনুবাদের স্তর নয়, ইংরেজি ব্যবস্থার ওপর বসানো বাংলা ফন্টও নয়। এর লক্ষ্য হলো বাংলাভাষীরা যেন ইংরেজি ছাড়াই প্রোগ্রাম লিখতে, অ্যাসেম্বল করতে, চালাতে ও বুঝতে পারেন।',
+      'প্রকল্পটির নাম এসেছে ১৯৫২ সালের ভাষা আন্দোলনের স্মারক একুশে ফেব্রুয়ারি থেকে। এর প্রথম স্তর নির্দেশিকা-১৬, বাংলা নেমোনিক, রেজিস্টার ও সংখ্যাসহ একটি ১৬-বিট RISC নির্দেশনা-সেট। এর ওপর এখনই দুটি টুল চলে: বয়ন, যা .বয়ন সোর্স ফাইলকে .ব বাইনারিতে রূপান্তর করে, এবং শিমু, যা সেই বাইনারি চালায়।',
+    ],
+  },
+};
+
+const L = {
+  en: {
+    title: 'Type and colour specimen',
+    intro: 'Phase 1 review page for the Akkhar Labs design system. It is not indexed and will not be linked from the public site.',
+    logo: 'Logo', logoCaption: 'Redrawn as vector from the supplied logo. Shown at 160, 64, 32 and 16 pixels; the last two are the favicon sizes.',
+    colour: 'Colour', colourNote: 'Contrast is calculated from tokens.css at build time against the page background. Body text needs 4.5:1 (WCAG AA).',
+    th: ['Token', 'Light', 'Dark', 'Contrast (light / dark)', 'Use'],
+    pass: 'passes AA for text', nottext: 'not used for text',
+    scale: 'Type scale', scaleNote: 'Ratio 1.25 on an 18px body. Headings never exceed 44px.',
+    families: 'Typefaces',
+    readingTitle: 'Reading sample', readingNote: 'Body text at the 68-character reading measure, in both scripts.',
+    components: 'Interface components',
+    metaLabel: 'Nirdeshika-16 facts',
+    bib: 'BibTeX', copy: 'Copy', copied: 'Copied',
+    tableCaption: 'Publication log, newest first',
+    tableTh: ['Date', 'Item', 'Identifier'],
+    focus: 'Links look like this. Press Tab to move through the page and check the focus outline on every link and button.',
+    spacing: 'Spacing scale', spacingNote: 'Every margin and gap on the site is one of these steps.',
+  },
+  bn: {
+    title: 'টাইপ ও রঙের নমুনা',
+    intro: 'অক্ষর ল্যাবসের ডিজাইন সিস্টেমের প্রথম ধাপের পর্যালোচনা পাতা। এটি সার্চ ইঞ্জিনে যাবে না এবং মূল সাইট থেকে এর কোনো লিংক থাকবে না।',
+    logo: 'লোগো', logoCaption: 'দেওয়া লোগো থেকে ভেক্টরে নতুন করে আঁকা। ১৬০, ৬৪, ৩২ ও ১৬ পিক্সেলে দেখানো হয়েছে; শেষ দুটি ফেভিকনের মাপ।',
+    colour: 'রং', colourNote: 'কনট্রাস্ট বিল্ডের সময় tokens.css থেকে পাতার পটভূমির সাপেক্ষে হিসাব করা। মূল লেখার জন্য ৪.৫:১ দরকার (WCAG AA)।',
+    th: ['টোকেন', 'আলো', 'অন্ধকার', 'কনট্রাস্ট (আলো / অন্ধকার)', 'ব্যবহার'],
+    pass: 'লেখার জন্য AA উত্তীর্ণ', nottext: 'লেখায় ব্যবহৃত নয়',
+    scale: 'টাইপ স্কেল', scaleNote: '১৮ পিক্সেল মূল লেখার ওপর ১.২৫ অনুপাত। শিরোনাম কখনো ৪৪ পিক্সেলের বেশি নয়।',
+    families: 'টাইপফেস',
+    readingTitle: 'পাঠের নমুনা', readingNote: '৬৮ অক্ষরের পাঠ-প্রস্থে মূল লেখা, দুই লিপিতেই।',
+    components: 'ইন্টারফেস উপাদান',
+    metaLabel: 'নির্দেশিকা-১৬ এর তথ্য',
+    bib: 'BibTeX', copy: 'কপি', copied: 'কপি হয়েছে',
+    tableCaption: 'প্রকাশনার তালিকা, নতুনটি আগে',
+    tableTh: ['তারিখ', 'বিষয়', 'শনাক্তকারী'],
+    focus: 'লিংক দেখতে এমন। Tab চেপে পাতায় ঘুরে প্রতিটি লিংক ও বাটনের ফোকাস রেখা যাচাই করুন।',
+    spacing: 'স্পেসিং স্কেল', spacingNote: 'সাইটের প্রতিটি মার্জিন ও ফাঁক এই ধাপগুলোর একটি।',
+  },
+}[lang];
+
+const meta = lang === 'en'
+  ? [
+      { label: 'Status', value: 'Specification complete' },
+      { label: 'Instruction width', value: '16 bits, fixed' },
+      { label: 'Instructions', value: '16' },
+      { label: 'Registers', value: '16 general-purpose, 3 special-purpose' },
+      { label: 'Memory', value: '65,536 addresses' },
+      { label: 'Licence', value: 'CC BY-NC 4.0' },
+      { label: 'Repository', value: 'akkhar-labs/Nirdeshika-16', href: 'https://github.com/akkhar-labs/Nirdeshika-16' },
+    ]
+  : [
+      { label: 'অবস্থা', value: 'বিবরণী সম্পূর্ণ' },
+      { label: 'নির্দেশনার প্রস্থ', value: '১৬ বিট, স্থির' },
+      { label: 'নির্দেশনা', value: '১৬টি' },
+      { label: 'রেজিস্টার', value: '১৬টি সাধারণ, ৩টি বিশেষ' },
+      { label: 'মেমরি', value: '৬৫,৫৩৬টি ঠিকানা' },
+      { label: 'লাইসেন্স', value: 'CC BY-NC 4.0' },
+      { label: 'রিপোজিটরি', value: 'akkhar-labs/Nirdeshika-16', href: 'https://github.com/akkhar-labs/Nirdeshika-16', lang: 'en' },
+    ];
+
+const bibtex = `@misc{hasan2026hashedcontext,
+  author    = {Hasan, Rahat},
+  title     = {Scaling GPU KV-Cache Efficiency and Inference
+               Concurrency for Autonomous Agents with HashedContext},
+  year      = {2026},
+  version   = {v0.2},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.23698048}
+}`;
+
+const log = lang === 'en'
+  ? [
+      ['27 Oct 2026', 'HashedContext preprint v0.2', '10.5281/zenodo.23698048'],
+      ['26 Oct 2026', 'HashedContext preprint v0.1', 'concept DOI 10.5281/zenodo.23668957'],
+      ['15 Aug 2026', 'ZRCP specification v1.0.0', '10.5281/zenodo.21955969'],
+    ]
+  : [
+      ['২৭ অক্টোবর ২০২৬', 'HashedContext প্রিপ্রিন্ট v0.2', '10.5281/zenodo.23698048'],
+      ['২৬ অক্টোবর ২০২৬', 'HashedContext প্রিপ্রিন্ট v0.1', 'কনসেপ্ট DOI 10.5281/zenodo.23668957'],
+      ['১৫ আগস্ট ২০২৬', 'ZRCP বিবরণী v1.0.0', '10.5281/zenodo.21955969'],
+    ];
+---
+<Base lang={lang} title={L.title} description={L.intro} noindex>
+  <div class="container page">
+    <header class="page-head measure">
+      <h1>{L.title}</h1>
+      <p class="lead">{L.intro}</p>
+    </header>
+
+    <section aria-labelledby="s-logo">
+      <h2 id="s-logo">{L.logo}</h2>
+      <figure>
+        <div class="logos">
+          {[160, 64, 32, 16].map((s) => <img src="/logo.svg" width={s} height={s} alt={s === 160 ? (lang === 'en' ? 'Akkhar Labs logo: a green Bengali letter অ inside a computer monitor, on a red square' : 'অক্ষর ল্যাবসের লোগো: লাল বর্গের ওপর কম্পিউটার মনিটরের ভেতরে সবুজ অক্ষর অ') : ''} />)}
+        </div>
+        <figcaption class="meta">{L.logoCaption}</figcaption>
+      </figure>
+    </section>
+
+    <section aria-labelledby="s-colour">
+      <h2 id="s-colour">{L.colour}</h2>
+      <p class="meta note">{L.colourNote}</p>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="table">
+        <table>
+          <thead><tr>{L.th.map((h) => <th scope="col">{h}</th>)}</tr></thead>
+          <tbody>
+            {colours.map((c) => (
+              <tr>
+                <th scope="row"><code>--{c.name}</code></th>
+                <td><span class="swatch" style={`background:${c.light}`}></span><code>{c.light}</code></td>
+                <td><span class="swatch" style={`background:${c.dark}`}></span><code>{c.dark}</code></td>
+                <td>
+                  {c.name === 'paper' ? '—' : `${n(c.cl.toFixed(1))}:${n(1)} / ${n(c.cd.toFixed(1))}:${n(1)}`}
+                  <span class="meta block">{c.text ? (c.cl >= 4.5 && c.cd >= 4.5 ? L.pass : 'FAILS AA') : L.nottext}</span>
+                </td>
+                <td>{c[lang]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="s-scale">
+      <h2 id="s-scale">{L.scale}</h2>
+      <p class="meta note">{L.scaleNote}</p>
+      <ol class="scale">
+        {scale.map((s) => (
+          <li>
+            <p class="meta"><code>{s.token}</code> · {n(s.px)}px · {s.role[lang]}</p>
+            <p style={`font-size: var(${s.token}); line-height: 1.35`} lang={lang}>{sample[lang]}</p>
+            <p style={`font-size: var(${s.token}); line-height: 1.35`} class="other" lang={other}>{sample[other]}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section aria-labelledby="s-families">
+      <h2 id="s-families">{L.families}</h2>
+      <dl class="families">
+        <div>
+          <dt class="meta">Source Serif 4 · Noto Serif Bengali</dt>
+          <dd class="f-serif" lang="en">Project Ekushey is a Bengali computing stack built from first principles.</dd>
+          <dd class="f-serif" lang="bn">প্রকল্প একুশে মৌলিক নীতি থেকে গড়ে তোলা একটি বাংলা কম্পিউটিং স্ট্যাক।</dd>
+          <dd class="f-serif" lang="en"><em>Italic: Bengali at the human layer, binary at the hardware layer.</em> <strong>Semibold: Nirdeshika-16</strong></dd>
+        </div>
+        <div>
+          <dt class="meta">Tiro Bangla</dt>
+          <dd class="f-display" lang="bn">বাংলা ভাষাকে কম্পিউটারের নতুন মাতৃভাষা করার লক্ষ্যে কার্যরত।</dd>
+        </div>
+        <div>
+          <dt class="meta">IBM Plex Sans · Noto Sans Bengali</dt>
+          <dd class="f-sans" lang="en">Status · Licence · Repository · Version · Last updated</dd>
+          <dd class="f-sans" lang="bn">অবস্থা · লাইসেন্স · রিপোজিটরি · সংস্করণ · সর্বশেষ হালনাগাদ</dd>
+        </div>
+        <div>
+          <dt class="meta">IBM Plex Mono</dt>
+          <dd class="f-mono" lang="en">doi = &#123;10.5281/zenodo.23698048&#125;  0123456789</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section aria-labelledby="s-reading">
+      <h2 id="s-reading">{L.readingTitle}</h2>
+      <p class="meta note">{L.readingNote}</p>
+      <div class="reading">
+        {[lang, other].map((l) => (
+          <article class="prose measure" lang={l}>
+            <h3>{reading[l].heading}</h3>
+            {reading[l].paras.map((p) => <p>{p}</p>)}
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section aria-labelledby="s-components">
+      <h2 id="s-components">{L.components}</h2>
+      <div class="stack">
+        <MetaRow items={meta} label={L.metaLabel} />
+
+        <div class="measure">
+          <PubEntry
+            title="Scaling GPU KV-Cache Efficiency and Inference Concurrency for Autonomous Agents with HashedContext"
+            href="https://zenodo.org/records/23698048"
+            authors="Rahat Hasan"
+            date={lang === 'en' ? '27 October 2026' : '২৭ অক্টোবর ২০২৬'}
+            type={lang === 'en' ? 'Preprint, version 0.2 · not peer-reviewed' : 'প্রিপ্রিন্ট, সংস্করণ ০.২ · পিয়ার-রিভিউ হয়নি'}
+            doi="10.5281/zenodo.23698048"
+            extra={[{ label: 'Zenodo', href: 'https://zenodo.org/records/23698048' }, { label: 'GitHub', href: 'https://github.com/rahatarch/hashedcontext' }]}
+          />
+        </div>
+
+        <div class="measure">
+          <CodeBlock code={bibtex} label={L.bib} copyLabel={L.copy} copiedLabel={L.copied} />
+        </div>
+
+        <div class="table-wrap measure" tabindex="0" role="region" aria-label="table">
+          <table>
+            <caption>{L.tableCaption}</caption>
+            <thead><tr>{L.tableTh.map((h) => <th scope="col">{h}</th>)}</tr></thead>
+            <tbody>{log.map((r) => <tr><td class="nowrap">{r[0]}</td><td>{r[1]}</td><td><code>{r[2]}</code></td></tr>)}</tbody>
+          </table>
+        </div>
+
+        <p class="measure">{L.focus} <a href="https://github.com/akkhar-labs">github.com/akkhar-labs</a> · <button type="button">{L.copy}</button></p>
+      </div>
+    </section>
+
+    <section aria-labelledby="s-spacing">
+      <h2 id="s-spacing">{L.spacing}</h2>
+      <p class="meta note">{L.spacingNote}</p>
+      <ul class="spacing">
+        {spacing.map(([tok, px]) => (
+          <li><code class="meta">{tok}</code><span class="meta px">{n(px)}px</span><span class="bar" style={`width: var(${tok})`}></span></li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block: var(--s-7); }
+  .page-head { margin-bottom: var(--s-7); }
+  .lead { font-size: var(--fs-4); color: var(--ink-2); margin-top: var(--s-4); }
+  section { padding-block: var(--s-7); border-top: 1px solid var(--ink); }
+  section > h2 { font-size: var(--fs-5); margin-bottom: var(--s-4); }
+  .note { margin-bottom: var(--s-5); max-width: var(--measure); }
+
+  .logos { display: flex; align-items: flex-end; gap: var(--s-6); flex-wrap: wrap; margin-bottom: var(--s-3); }
+
+  .table-wrap { overflow-x: auto; }
+  .swatch { display: inline-block; width: 1rem; height: 1rem; border: var(--hairline); vertical-align: -0.15rem; margin-right: var(--s-2); }
+  .block { display: block; }
+  .nowrap { white-space: nowrap; }
+
+  .scale { list-style: none; padding: 0; }
+  .scale li { padding-block: var(--s-4); border-bottom: var(--hairline); }
+  .scale .other { color: var(--ink-2); }
+
+  .families > div { padding-block: var(--s-4); border-bottom: var(--hairline); }
+  .families dd { margin-top: var(--s-2); font-size: var(--fs-4); }
+  .f-serif { font-family: var(--font-serif); }
+  .f-display { font-family: var(--font-display-bn); font-size: var(--fs-6) !important; line-height: 1.5; }
+  .f-sans { font-family: var(--font-sans); }
+  .f-mono { font-family: var(--font-mono); }
+
+  .reading { display: grid; gap: var(--s-7); }
+  @media (min-width: 1200px) { .reading { grid-template-columns: 1fr 1fr; gap: var(--s-6); } }
+  .reading h3 { font-size: var(--fs-5); }
+
+  .stack > * + * { margin-top: var(--s-7); }
+
+  .spacing { list-style: none; padding: 0; }
+  .spacing li { display: grid; grid-template-columns: 5rem 3.5rem 1fr; align-items: center; padding-block: var(--s-2); border-bottom: var(--hairline); }
+  .bar { display: block; height: 0.5rem; background: var(--ink); }
+</style>

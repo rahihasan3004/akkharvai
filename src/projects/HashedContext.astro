@@ -1,0 +1,113 @@
+---
+import ProjectLayout from '../layouts/ProjectLayout.astro';
+import Figure from '../components/figures/Figure.astro';
+import ResidencyChart from '../components/figures/ResidencyChart.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const rows = [
+  { m: L('Prompt tokens at turn 4', 'ধাপ ৪-এ প্রম্পট টোকেন'), c: L('27,747', '২৭,৭৪৭'), h: L('11,746', '১১,৭৪৬'), d: L('−57.67%', '−৫৭.৬৭%') },
+  { m: L('Turn 5, normalised', 'ধাপ ৫, সমন্বিত'), c: L('31,747', '৩১,৭৪৭'), h: L('11,746', '১১,৭৪৬'), d: L('−63.00%', '−৬৩.০০%') },
+  { m: L('File-specific tokens', 'ফাইল-সংশ্লিষ্ট টোকেন'), c: L('20,000', '২০,০০০'), h: L('4,140', '৪,১৪০'), d: L('−79.30%', '−৭৯.৩০%') },
+  { m: L('Server cache-hit tokens', 'সার্ভার ক্যাশ-হিট টোকেন'), c: L('27,136', '২৭,১৩৬'), h: L('10,752', '১০,৭৫২'), d: L('−60.38%', '−৬০.৩৮%') },
+  { m: L('Output tokens', 'আউটপুট টোকেন'), c: L('436', '৪৩৬'), h: L('1,420', '১,৪২০'), d: L('+225%', '+২২৫%') },
+];
+const toc = [
+  { id: 'problem', label: L('The problem', 'সমস্যা') },
+  { id: 'design', label: L('Design', 'নকশা') },
+  { id: 'deployment', label: L('Where it runs', 'কোথায় চলে') },
+  { id: 'results', label: L('Measured results', 'মাপা ফলাফল') },
+  { id: 'projections', label: L('Analytical projections', 'বিশ্লেষণী প্রক্ষেপণ') },
+  { id: 'status', label: L('Status', 'অবস্থা') },
+];
+---
+<ProjectLayout
+  lang={lang} slug="hashedcontext" toc={toc} schemaType="TechArticle"
+  description={L(
+    'HashedContext replaces repeated file copies in an AI coding agent’s prompt with 35-token SHA-256 stubs and keeps one live copy at the tail. On DeepSeek V4 it cut prompt tokens by 57.7–67.2%.',
+    'HashedContext এআই কোডিং এজেন্টের প্রম্পটে ফাইলের পুনরাবৃত্ত কপিগুলোকে ৩৫ টোকেনের এসএইচএ-২৫৬ স্টাব দিয়ে বদলে দেয় এবং শেষে একটি সক্রিয় কপি রাখে। ডিপসিক ভি৪-এ এটি প্রম্পট টোকেন ৫৭.৭–৬৭.২% কমিয়েছে।'
+  )}
+  extraMeta={[
+    { label: 'DOI (v0.2)', value: '10.5281/zenodo.23698048', href: 'https://doi.org/10.5281/zenodo.23698048', lang: 'en' },
+    { label: L('Review', 'পর্যালোচনা'), value: L('Preprint, not peer-reviewed', 'প্রিপ্রিন্ট, পিয়ার-রিভিউ হয়নি') },
+  ]}
+>
+  <h2 id="problem">{L('The problem', 'সমস্যা')}</h2>
+  <p>{L(
+    'An autonomous coding agent works over dozens of turns: it reads files, edits them, runs tests and reads them again. Because it cannot be sure a file is unchanged, it usually appends the full file to the conversation each time. For M files of about N tokens over P turns, the prompt grows as O(M × N × P).',
+    'একটি স্বয়ংক্রিয় কোডিং এজেন্ট কয়েক ডজন ধাপ ধরে কাজ করে: ফাইল পড়ে, সম্পাদনা করে, পরীক্ষা চালায়, আবার পড়ে। ফাইলটি অপরিবর্তিত কি না নিশ্চিত হতে না পারায় এটি সাধারণত প্রতিবার পুরো ফাইলটি কথোপকথনে জুড়ে দেয়। প্রায় N টোকেনের M টি ফাইল P টি ধাপ ধরে চললে প্রম্পট বাড়ে O(M × N × P) হারে।'
+  )}</p>
+  <p>{L(
+    'Every one of those tokens occupies GPU high-bandwidth memory in the key-value cache. Paging techniques such as PagedAttention allocate that memory efficiently, but they cannot shrink the sequence itself: a 100,000-token prompt still needs 100,000 tokens of cache. The result is fewer concurrent users per GPU, slower decoding, and a model that sees several conflicting versions of the same file.',
+    'এই প্রতিটি টোকেন কি-ভ্যালু ক্যাশে জিপিইউর উচ্চ-ব্যান্ডউইথ মেমরি দখল করে। পেজডঅ্যাটেনশনের মতো পদ্ধতি সেই মেমরি দক্ষভাবে বরাদ্দ করে, কিন্তু অনুক্রমটিকে ছোট করতে পারে না: ১,০০,০০০ টোকেনের প্রম্পটে তবুও ১,০০,০০০ টোকেনের ক্যাশ লাগে। ফলে একটি জিপিইউতে একসঙ্গে কম ব্যবহারকারী, ধীর ডিকোডিং, আর মডেল একই ফাইলের পরস্পরবিরোধী কয়েকটি সংস্করণ দেখে।'
+  )}</p>
+
+  <h2 id="design">{L('Design', 'নকশা')}</h2>
+  <p>{L('HashedContext treats the conversation as a log of state changes rather than an archive of file copies. It combines four mechanisms:', 'HashedContext কথোপকথনকে ফাইল-কপির সংগ্রহ নয়, অবস্থা-পরিবর্তনের লগ হিসেবে দেখে। এতে চারটি কৌশল একসঙ্গে কাজ করে:')}</p>
+  <ol>
+    <li><strong>{L('Hash-gated tracking.', 'হ্যাশ-যাচাইকৃত অনুসরণ।')}</strong> {L('Each file observation is hashed with SHA-256 before it is serialised, which costs about 2–5 µs per megabyte on a CPU.', 'প্রতিটি ফাইল-পর্যবেক্ষণ লেখার আগে এসএইচএ-২৫৬ দিয়ে হ্যাশ করা হয়; সিপিইউতে এতে প্রতি মেগাবাইটে প্রায় ২–৫ মাইক্রোসেকেন্ড লাগে।')}</li>
+    <li><strong>{L('Historical deduplication.', 'ইতিহাস থেকে পুনরাবৃত্তি বাদ।')}</strong> {L('Earlier copies of a file are replaced by a [HASH_STUB] of about 35 tokens carrying its path, hash and state.', 'কোনো ফাইলের আগের কপিগুলোকে প্রায় ৩৫ টোকেনের একটি [HASH_STUB] দিয়ে বদলানো হয়, যাতে থাকে পথ, হ্যাশ ও অবস্থা।')}</li>
+    <li><strong>{L('Authoritative tail.', 'প্রামাণ্য শেষাংশ।')}</strong> {L('Exactly one full, live copy of each active file sits at the end of the prompt. Reasoning and diffs elsewhere stay verbatim.', 'প্রতিটি সক্রিয় ফাইলের ঠিক একটি পূর্ণ, সক্রিয় কপি থাকে প্রম্পটের শেষে। অন্য জায়গার যুক্তি ও পরিবর্তন-বিবরণ হুবহু থাকে।')}</li>
+    <li><strong>{L('On-demand resolution.', 'চাহিদামতো পুনরুদ্ধার।')}</strong> {L('A local, content-addressed HashVault keeps the exact bytes of every version, so any historical state can be restored losslessly for a single turn.', 'একটি স্থানীয়, কনটেন্ট-অ্যাড্রেসড হ্যাশভল্ট প্রতিটি সংস্করণের হুবহু বাইট রাখে, ফলে যেকোনো পুরোনো অবস্থা একটি ধাপের জন্য নিখুঁতভাবে ফিরিয়ে আনা যায়।')}</li>
+  </ol>
+  <p>{L('File-token cost falls from O(M × N × P) to O((M × N) + (D × P)), where D is the number of tokens modified per turn.', 'ফাইল-টোকেনের খরচ O(M × N × P) থেকে নেমে আসে O((M × N) + (D × P))-এ, যেখানে D হলো প্রতি ধাপে পরিবর্তিত টোকেনের সংখ্যা।')}</p>
+  <Figure
+    wide
+    caption={L('Figure 1. File tokens resident in the prompt over five turns, for one file of about 4,000 tokens. The conventional agent holds a full copy per turn; HashedContext holds one copy plus a 35-token stub per earlier turn.', 'চিত্র ১. প্রায় ৪,০০০ টোকেনের একটি ফাইলের জন্য পাঁচ ধাপে প্রম্পটে থাকা ফাইল টোকেন। প্রচলিত এজেন্ট প্রতি ধাপে একটি পূর্ণ কপি রাখে; HashedContext রাখে একটি কপি এবং আগের প্রতিটি ধাপের জন্য ৩৫ টোকেনের একটি স্টাব।')}
+    source={L('Source: Hasan (2026), HashedContext v0.2, turn-by-turn residency trace. Turn 5 matches the 20,000 → 4,140 measured on DeepSeek V4.', 'উৎস: হাসান (২০২৬), HashedContext v0.2, ধাপভিত্তিক অবস্থান-চিত্র। ধাপ ৫ ডিপসিক ভি৪-এ মাপা ২০,০০০ → ৪,১৪০-এর সঙ্গে মেলে।')}
+    sourceHref={pathFor(lang, '/publications/hashedcontext-2026/')}
+  >
+    <ResidencyChart lang={lang} />
+  </Figure>
+
+  <h2 id="deployment">{L('Where it runs', 'কোথায় চলে')}</h2>
+  <p>{L(
+    'HashedContext needs no change to model weights or to the inference engine. It can run at the edge, inside an editor extension or agent command-line tool, or as a gateway in front of serving engines such as vLLM or SGLang. In the serving stack it sits upstream of RadixAttention and PagedAttention: it removes redundant sequence content before memory is allocated, and they place what remains efficiently in GPU memory.',
+    'HashedContext-এর জন্য মডেলের ওজন বা ইনফারেন্স ইঞ্জিনে কোনো পরিবর্তন লাগে না। এটি চলতে পারে প্রান্তে, কোনো এডিটর-এক্সটেনশন বা এজেন্টের কমান্ড-লাইন টুলের ভেতরে, অথবা ভিএলএলএম বা এসজিল্যাংয়ের মতো সার্ভিং ইঞ্জিনের সামনে একটি গেটওয়ে হিসেবে। সার্ভিং স্ট্যাকে এর অবস্থান র‍্যাডিক্সঅ্যাটেনশন ও পেজডঅ্যাটেনশনের আগে: মেমরি বরাদ্দের আগেই এটি অনুক্রম থেকে পুনরাবৃত্ত বিষয়বস্তু সরায়, আর ওরা বাকিটুকু দক্ষভাবে জিপিইউ মেমরিতে বসায়।'
+  )}</p>
+
+  <h2 id="results">{L('Measured results', 'মাপা ফলাফল')}</h2>
+  <p>{L(
+    'The initial evaluation ran on production DeepSeek V4 endpoints through an OpenAI-compatible API, with telemetry taken from the raw usage payloads. The task was a five-turn refactoring session on a TypeScript module of 417 lines, about 4,000 tokens.',
+    'প্রাথমিক মূল্যায়ন চালানো হয় ওপেনএআই-সামঞ্জস্যপূর্ণ এপিআইয়ের মাধ্যমে ডিপসিক ভি৪-এর প্রোডাকশন এন্ডপয়েন্টে; পরিমাপ নেওয়া হয় সরাসরি ব্যবহার-তথ্য থেকে। কাজটি ছিল ৪১৭ লাইনের, প্রায় ৪,০০০ টোকেনের একটি টাইপস্ক্রিপ্ট মডিউলে পাঁচ ধাপের রিফ্যাক্টরিং।'
+  )}</p>
+  <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+    <table>
+      <caption>{L('Table 1. Production API telemetry on DeepSeek V4 (paper, Table 1)', 'সারণি ১. ডিপসিক ভি৪-এ প্রোডাকশন এপিআই পরিমাপ (গবেষণাপত্র, সারণি ১)')}</caption>
+      <thead><tr><th scope="col">{L('Metric', 'পরিমাপ')}</th><th scope="col" class="r">{L('Conventional', 'প্রচলিত')}</th><th scope="col" class="r">HashedContext</th><th scope="col" class="r">{L('Change', 'পরিবর্তন')}</th></tr></thead>
+      <tbody>{rows.map((r) => <tr><td>{r.m}</td><td class="r n">{r.c}</td><td class="r n">{r.h}</td><td class="r n"><strong>{r.d}</strong></td></tr>)}</tbody>
+    </table>
+  </div>
+  <p>{L(
+    'Output tokens rose because the model produced a longer, more detailed audit. To test whether stubbing hurt comprehension, a single trailing comment was changed at line 416 after four turns of stubbed history. The model found the one-line change in the live copy, separated it from logic changes, and wrote a ten-point audit with no recall errors.',
+    'আউটপুট টোকেন বেড়েছে, কারণ মডেল আরও দীর্ঘ ও বিস্তারিত নিরীক্ষা লিখেছে। স্টাব ব্যবহারে বোঝাপড়া ক্ষতিগ্রস্ত হয় কি না যাচাই করতে, চার ধাপের স্টাব-ইতিহাসের পর ৪১৬ নম্বর লাইনের একটি মন্তব্য বদলে দেওয়া হয়। মডেল সক্রিয় কপিতে এক লাইনের সেই পরিবর্তনটি খুঁজে পেয়েছে, যুক্তিগত পরিবর্তন থেকে আলাদা করেছে, এবং কোনো স্মরণ-ত্রুটি ছাড়াই দশ দফার নিরীক্ষা লিখেছে।'
+  )}</p>
+
+  <h2 id="projections">{L('Analytical projections', 'বিশ্লেষণী প্রক্ষেপণ')}</h2>
+  <p>{L(
+    'The paper’s mathematical model bounds savings at 90–97% for long multi-file refactoring sessions, and its analyses of GPU memory budgets, batch concurrency, prefix-cache structure and runaway-loop cost follow from that model. These are projections, not measurements, and the paper labels them as such.',
+    'গবেষণাপত্রের গাণিতিক মডেল অনুযায়ী বহু-ফাইলের দীর্ঘ রিফ্যাক্টরিং সেশনে সাশ্রয়ের সীমা ৯০–৯৭%, আর জিপিইউ মেমরি বাজেট, ব্যাচ-সমান্তরালতা, প্রিফিক্স-ক্যাশ কাঠামো ও লাগামহীন লুপের খরচের বিশ্লেষণ সেই মডেল থেকেই এসেছে। এগুলো প্রক্ষেপণ, পরিমাপ নয়; গবেষণাপত্রেও তা-ই উল্লেখ করা আছে।'
+  )}</p>
+
+  <h2 id="status">{L('Status', 'অবস্থা')}</h2>
+  <ul class="status">
+    <li><span>{L('Architecture and formal model', 'স্থাপত্য ও আনুষ্ঠানিক মডেল')}</span><strong>{L('Done', 'সম্পন্ন')}</strong></li>
+    <li><span>{L('Initial benchmark on a production endpoint', 'প্রোডাকশন এন্ডপয়েন্টে প্রাথমিক পরিমাপ')}</span><strong>{L('Done', 'সম্পন্ন')}</strong></li>
+    <li><span>{L('Preprints v0.1 and v0.2 on Zenodo', 'জেনোডোতে প্রিপ্রিন্ট v0.1 ও v0.2')}</span><strong>{L('Done', 'সম্পন্ন')}</strong></li>
+    <li><span>{L('Extended benchmarks across models and workloads', 'বিভিন্ন মডেল ও কাজে বিস্তৃত পরিমাপ')}</span>{L('In progress', 'চলছে')}</li>
+    <li><span>{L('Reference implementation', 'রেফারেন্স বাস্তবায়ন')}</span>{L('Planned', 'পরিকল্পিত')}</li>
+    <li><span>{L('arXiv or peer-reviewed submission', 'আর্কাইভ বা পিয়ার-রিভিউ জমা')}</span>{L('Planned', 'পরিকল্পিত')}</li>
+  </ul>
+  <p>{L('HashedContext builds on ', 'HashedContext-এর ভিত্তি ')}<a href={pathFor(lang, '/projects/zrcp/')}>ZRCP</a>{L('. Read the ', '। পড়ুন ')}<a href={pathFor(lang, '/publications/hashedcontext-2026/')}>{L('full preprint', 'পূর্ণ প্রিপ্রিন্ট')}</a>{L('.', '।')}</p>
+</ProjectLayout>
+
+<style>
+  .table-wrap { overflow-x: auto; }
+  .r { text-align: right; }
+  .n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .status { list-style: none; padding: 0 !important; border-top: var(--hairline); }
+  .status li { display: flex; justify-content: space-between; gap: var(--s-4); padding-block: var(--s-2); border-bottom: var(--hairline); font-family: var(--font-sans); font-size: var(--fs-2); margin: 0 !important; }
+  .status strong { font-weight: 500; color: var(--green); }
+</style>

@@ -1,0 +1,43 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { type Lang } from '../i18n/ui';
+import { site } from '../site.config';
+import { rahat } from '../data/lab';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const ld = { '@context': 'https://schema.org', '@type': 'ContactPage', name: L('Contact', 'যোগাযোগ'), about: { '@id': `${site.url}/#org` } };
+---
+<Base lang={lang} title={L('Contact', 'যোগাযোগ')} description={L('How to reach Akkhar Labs about research, collaboration or the Nirdeshika-16 toolchain.', 'গবেষণা, সহযোগিতা বা নির্দেশিকা-১৬ টুলচেইন নিয়ে অক্ষর ল্যাবসের সঙ্গে যোগাযোগের উপায়।')} jsonld={[ld]}>
+  <PageHeader lang={lang} crumbs={[{ label: L('Contact', 'যোগাযোগ') }]} title={L('Contact', 'যোগাযোগ')} lead={L('For research questions, collaboration or problems with the tools.', 'গবেষণার প্রশ্ন, সহযোগিতা বা টুলের সমস্যা নিয়ে।')} />
+  <div class="container">
+    <dl class="contacts">
+      <div>
+        <dt>{L('Email', 'ইমেইল')}</dt>
+        <dd>{site.contactEmail ? <a href={`mailto:${site.contactEmail}`}>{site.contactEmail}</a> : <span class="pending">{L('A public address will be published here soon.', 'একটি সর্বজনীন ঠিকানা শিগগিরই এখানে প্রকাশ করা হবে।')}</span>}</dd>
+      </div>
+      <div>
+        <dt>{L('Code and issues', 'কোড ও সমস্যা')}</dt>
+        <dd><a href={site.links.github}>github.com/akkhar-labs</a><span class="meta">{L('Open an issue on the relevant repository for bugs in Boyon, Shimu or the SDK.', 'বয়ন, শিমু বা এসডিকে-তে ত্রুটি পেলে সংশ্লিষ্ট রিপোজিটরিতে একটি ইস্যু খুলুন।')}</span></dd>
+      </div>
+      <div>
+        <dt>ORCID</dt>
+        <dd><a href={`https://orcid.org/${rahat.orcid}`}>{rahat.orcid}</a><span class="meta">{rahat.name[lang]}</span></dd>
+      </div>
+      <div>
+        <dt>{L('Location', 'অবস্থান')}</dt>
+        <dd>{site.location[lang]}</dd>
+      </div>
+    </dl>
+  </div>
+</Base>
+<style>
+  .contacts { border-top: 1px solid var(--ink); margin-bottom: var(--s-8); max-width: 48rem; }
+  .contacts > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-1) var(--gutter); padding-block: var(--s-4); border-bottom: var(--hairline); }
+  @media (min-width: 640px) { .contacts > div { grid-template-columns: 12rem minmax(0, 1fr); } }
+  dt { font-family: var(--font-sans); font-size: var(--fs-2); color: var(--ink-2); }
+  dd { font-size: var(--fs-4); display: flex; flex-direction: column; gap: var(--s-1); }
+  .pending { color: var(--ink-2); font-size: var(--fs-3); }
+</style>

@@ -1,0 +1,32 @@
+---
+/** Editorial section: heading and note in a left column, content on the right (stacked on small screens). */
+interface Props { id: string; title: string; note?: string; link?: { href: string; label: string }; level?: 2 | 3 }
+const { id, title, note, link, level = 2 } = Astro.props;
+const H = `h${level}` as 'h2' | 'h3';
+---
+<section class="section container" aria-labelledby={`${id}-h`} id={id}>
+  <div class="side">
+    <H id={`${id}-h`} class="sec-title">{title}</H>
+    {note && <p class="sec-note">{note}</p>}
+    {link && <p class="sec-link sans"><a href={link.href}>{link.label}</a></p>}
+  </div>
+  <div class="main"><slot /></div>
+</section>
+<style>
+  .section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-4) var(--gutter);
+    padding-block: var(--s-7);
+    border-top: 1px solid var(--ink);
+  }
+  @media (min-width: 960px) {
+    .section { grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); }
+    .side { position: relative; }
+  }
+  .sec-title { font-size: var(--fs-5); }
+  .sec-note { font-size: var(--fs-2); color: var(--ink-2); margin-top: var(--s-3); max-width: 28ch; }
+  :global(:where([lang|="bn"])) .sec-note { max-width: 22em; }
+  .sec-link { font-size: var(--fs-2); margin-top: var(--s-3); }
+  .main { min-width: 0; }
+</style>

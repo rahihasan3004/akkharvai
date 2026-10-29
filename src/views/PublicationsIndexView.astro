@@ -1,0 +1,45 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import PubEntry from '../components/PubEntry.astro';
+import { pathFor, num, type Lang } from '../i18n/ui';
+import { publications, areas, rahat, type AreaSlug } from '../data/lab';
+import { formatDate } from '../lib/format';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const years = [...new Set(publications.map((p) => p.year))].sort((a, b) => b - a);
+const order: AreaSlug[] = ['efficient-ai-infrastructure', 'bengali-native-computing'];
+---
+<Base lang={lang} title={L('Publications', 'প্রকাশনা')} description={L('Papers and specifications from Akkhar Labs, with DOIs, PDFs and citations. Open access under Creative Commons licences.', 'অক্ষর ল্যাবসের গবেষণাপত্র ও বিবরণী, ডিওআই, পিডিএফ ও উদ্ধৃতিসহ। ক্রিয়েটিভ কমন্স লাইসেন্সে সবার জন্য উন্মুক্ত।')}>
+  <PageHeader lang={lang} crumbs={[{ label: L('Publications', 'প্রকাশনা') }]} title={L('Publications', 'প্রকাশনা')}
+    lead={L('Papers are archived on Zenodo with DOIs; specifications are versioned on GitHub. Everything is open access. Nothing here has been peer-reviewed yet, and each entry says so.', 'গবেষণাপত্র ডিওআইসহ জেনোডোতে সংরক্ষিত; বিবরণীগুলো গিটহাবে সংস্করণসহ রাখা। সবকিছুই সবার জন্য উন্মুক্ত। এখানে কোনোটিই এখনো পিয়ার-রিভিউ হয়নি, এবং প্রতিটি তালিকায় তা উল্লেখ আছে।')} />
+  <div class="container list">
+    {years.map((yr) => (
+      <section aria-labelledby={`y${yr}`} class="year">
+        <h2 id={`y${yr}`}>{num(lang, yr)}</h2>
+        <div>
+          {order.map((a) => publications.filter((p) => p.year === yr && p.area === a).map((p) => (
+            <PubEntry
+              title={lang === 'bn' && p.titleBn ? p.titleBn : p.title}
+              href={pathFor(lang, `/publications/${p.slug}/`)}
+              authors={p.authors.map((x) => (lang === 'bn' ? rahat.name.bn : x.name)).join(', ')}
+              date={formatDate(lang, p.date)}
+              type={`${p.type[lang]} · ${areas[p.area].title[lang]}${p.peerReviewed ? '' : L(' · not peer-reviewed', ' · পিয়ার-রিভিউ হয়নি')}`}
+              doi={p.doi}
+              extra={[{ label: L('PDF', 'পিডিএফ'), href: p.pdf.href }]}
+            />
+          )))}
+        </div>
+      </section>
+    ))}
+  </div>
+</Base>
+<style>
+  .list { padding-bottom: var(--s-8); }
+  .year { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-2) var(--gutter); border-top: 1px solid var(--ink); padding-top: var(--s-4); }
+  @media (min-width: 960px) { .year { grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); } }
+  .year h2 { font-size: var(--fs-5); font-variant-numeric: tabular-nums; }
+  .year :global(.pub:first-child) { padding-top: var(--s-1); }
+</style>

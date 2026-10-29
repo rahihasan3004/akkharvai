@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import MetaRow from '../components/MetaRow.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+import { rahat, projects, publications } from '../data/lab';
+import { formatDate } from '../lib/format';
+import { site } from '../site.config';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const ld = {
+  '@context': 'https://schema.org', '@type': 'Person', '@id': `${site.url}/people/rahat-hasan/#person`,
+  name: 'Rahat Hasan', alternateName: 'রাহাত হাসান', jobTitle: rahat.role.en,
+  affiliation: { '@id': `${site.url}/#org` }, worksFor: { '@id': `${site.url}/#org` },
+  homeLocation: { '@type': 'Place', name: 'Bogura, Bangladesh' },
+  identifier: `https://orcid.org/${rahat.orcid}`,
+  sameAs: [`https://orcid.org/${rahat.orcid}`, rahat.github],
+  url: new URL(pathFor(lang, '/people/rahat-hasan/'), site.url).href,
+};
+---
+<Base lang={lang} title={rahat.name[lang]} description={L('Rahat Hasan is the founder and systems architect of Akkhar Labs, and the author of Nirdeshika-16, Boyon, Shimu, ZRCP and HashedContext.', 'রাহাত হাসান অক্ষর ল্যাবসের প্রতিষ্ঠাতা ও সিস্টেম স্থপতি; নির্দেশিকা-১৬, বয়ন, শিমু, ZRCP ও HashedContext-এর প্রণেতা।')} jsonld={[ld]}>
+  <PageHeader lang={lang} crumbs={[{ label: L('About', 'পরিচিতি'), href: '/about/' }, { label: rahat.name[lang] }]} eyebrow={rahat.role[lang]} title={rahat.name[lang]}>
+    <div class="head">
+      <div class="portrait" role="img" aria-label={L('Portrait not yet available', 'প্রতিকৃতি এখনো নেই')}>
+        <span lang="bn" aria-hidden="true">রা</span>
+        <small class="meta">{L('Portrait not yet available', 'প্রতিকৃতি এখনো নেই')}</small>
+      </div>
+      <MetaRow label={L('Profile facts', 'পরিচিতির তথ্য')} items={[
+        { label: L('Based in', 'অবস্থান'), value: site.location[lang] },
+        { label: 'ORCID', value: rahat.orcid, href: `https://orcid.org/${rahat.orcid}`, lang: 'en' },
+        { label: 'GitHub', value: '@rahatarch', href: rahat.github, lang: 'en' },
+      ]} />
+    </div>
+  </PageHeader>
+
+  <Section id="bio" title={L('Biography', 'জীবনী')}>
+    <div class="prose measure">
+      <p>{L(
+        'Rahat Hasan is a systems architect from Bogura, Bangladesh, and the founder of Akkhar Labs. He designed the Nirdeshika-16 instruction set architecture, the Akkhar-Hex number system and the Akkhar-Lipi 8 character encoding, and wrote the Boyon assembler, the Shimu simulator and the Nirdeshika SDK.',
+        'রাহাত হাসান বগুড়া, বাংলাদেশের একজন সিস্টেম স্থপতি এবং অক্ষর ল্যাবসের প্রতিষ্ঠাতা। তিনি নির্দেশিকা-১৬ নির্দেশনা-সেট স্থাপত্য, অক্ষর-হেক্স সংখ্যা পদ্ধতি ও অক্ষর-লিপি ৮ অক্ষর এনকোডিংয়ের নকশা করেছেন, এবং বয়ন অ্যাসেম্বলার, শিমু সিমুলেটর ও নির্দেশিকা এসডিকে লিখেছেন।'
+      )}</p>
+      <p>{L(
+        'His work on AI infrastructure began with the Zero-Redundancy Context Protocol (ZRCP) and continued with HashedContext, which studies how removing redundant file context from coding agents affects GPU memory and serving concurrency.',
+        'এআই অবকাঠামো নিয়ে তাঁর কাজ শুরু হয় জিরো-রিডানডেন্সি কনটেক্সট প্রোটোকল (ZRCP) দিয়ে, এবং এগিয়েছে HashedContext পর্যন্ত, যা দেখায় কোডিং এজেন্ট থেকে অপ্রয়োজনীয় ফাইল-কনটেক্সট বাদ দিলে জিপিইউ মেমরি ও সার্ভিং-সক্ষমতায় কী প্রভাব পড়ে।'
+      )}</p>
+    </div>
+  </Section>
+
+  <Section id="publications" title={L('Publications', 'প্রকাশনা')}>
+    <ul class="rows">
+      {publications.map((p) => <li><a class="nm" href={pathFor(lang, `/publications/${p.slug}/`)} lang={lang === 'bn' && p.titleBn ? 'bn' : 'en'}>{lang === 'bn' && p.titleBn ? p.titleBn : p.title}</a><span class="meta">{formatDate(lang, p.date)} · {p.type[lang]}</span></li>)}
+    </ul>
+  </Section>
+
+  <Section id="projects" title={L('Projects', 'প্রকল্প')}>
+    <ul class="rows">
+      {projects.map((p) => <li><a class="nm" href={pathFor(lang, `/projects/${p.slug}/`)}>{p.name[lang]}</a><span class="meta">{p.kind[lang]}</span></li>)}
+    </ul>
+  </Section>
+</Base>
+<style>
+  .head { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5) var(--gutter); margin-top: var(--s-6); align-items: start; }
+  @media (min-width: 640px) { .head { grid-template-columns: 10rem minmax(0, 1fr); } }
+  .head :global(.meta-row) { margin-top: 0 !important; }
+  .portrait { width: 10rem; aspect-ratio: 4 / 5; border: 1px dashed var(--ink-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-2); text-align: center; padding: var(--s-3); }
+  .portrait span { font-family: var(--font-display-bn); font-size: var(--fs-6); color: var(--ink-2); line-height: 1; }
+  .rows { list-style: none; padding: 0; border-top: var(--hairline); }
+  .rows li { display: flex; flex-direction: column; gap: var(--s-1); padding-block: var(--s-3); border-bottom: var(--hairline); }
+  .nm { font-family: var(--font-serif); font-weight: 600; font-size: var(--fs-3); line-height: 1.35; }
+</style>

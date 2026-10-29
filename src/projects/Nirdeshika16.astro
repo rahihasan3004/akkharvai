@@ -1,0 +1,210 @@
+---
+import ProjectLayout from '../layouts/ProjectLayout.astro';
+import Figure from '../components/figures/Figure.astro';
+import InstructionFormat from '../components/figures/InstructionFormat.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { pathFor, num, type Lang } from '../i18n/ui';
+import { formatBytes } from '../lib/format';
+import { publication } from '../data/lab';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const spec = publication('nirdeshika-16-specification');
+
+// Opcode table: Nirdeshika-16 specification v1.0.0, chapter 3 and 4.1–4.16.
+const ops = [
+  { bin: '০০০০', hex: '০', m: 'শূণ্য', type: 'স', en: 'No operation', bn: 'কোনো কাজ করে না', cyc: '—' },
+  { bin: '০০০১', hex: '১', m: 'স্থানান্তর', type: 'ম', en: 'Place an 8-bit value directly in a register', bn: 'একটি ৮-বিট মান সরাসরি সাময়িকে রাখে', cyc: '১' },
+  { bin: '০০১০', hex: '২', m: 'আদান', type: 'ম', en: 'Load from memory into a register', bn: 'স্মৃতি থেকে সাময়িকে উপাত্ত আনে', cyc: '২' },
+  { bin: '০০১১', hex: '৩', m: 'প্রদান', type: 'ম', en: 'Store a register to memory', bn: 'সাময়িক থেকে স্মৃতিতে উপাত্ত রাখে', cyc: '২' },
+  { bin: '০১০০', hex: '৪', m: 'সংযোজন', type: 'স', en: 'Add two registers', bn: 'দুটি সাময়িকের যোগফল', cyc: '১' },
+  { bin: '০১০১', hex: '৫', m: 'বিয়োজন', type: 'স', en: 'Subtract one register from another', bn: 'একটি সাময়িক থেকে অন্যটির বিয়োগফল', cyc: '১' },
+  { bin: '০১১০', hex: '৬', m: 'গুণন', type: 'স', en: 'Multiply two registers', bn: 'দুটি সাময়িকের গুণফল', cyc: '৩' },
+  { bin: '০১১১', hex: '৭', m: 'বিভাজন', type: 'স', en: 'Divide; division by zero sets the error bit', bn: 'ভাগ; শূন্য দিয়ে ভাগ করলে ত্রুটি বিট সক্রিয় হয়', cyc: '৪' },
+  { bin: '১০০০', hex: '৮', m: 'উভয়', type: 'স', en: 'Bitwise AND', bn: 'বিটভিত্তিক উভয় (AND)', cyc: '১' },
+  { bin: '১০০১', hex: '৯', m: 'অথবা', type: 'স', en: 'Bitwise OR', bn: 'বিটভিত্তিক অথবা (OR)', cyc: '১' },
+  { bin: '১০১০', hex: 'ক', m: 'বিচিত্র', type: 'স', en: 'Bitwise XOR', bn: 'বিটভিত্তিক বিচিত্র (XOR)', cyc: '১' },
+  { bin: '১০১১', hex: 'খ', m: 'বৈষম্য-প্রস্থান', type: 'প', en: 'Jump if the result was not zero', bn: 'ফলাফল শূন্য না হলে লাফ', cyc: '১ / ২' },
+  { bin: '১১০০', hex: 'গ', m: 'প্রস্থান', type: 'প', en: 'Jump unconditionally', bn: 'শর্তহীন লাফ', cyc: '১' },
+  { bin: '১১০১', hex: 'ঘ', m: 'সাম্য-প্রস্থান', type: 'প', en: 'Jump if the result was zero', bn: 'ফলাফল শূন্য হলে লাফ', cyc: '১ / ২' },
+  { bin: '১১১০', hex: 'ঙ', m: 'প্রদর্শন', type: 'স', en: 'Send a register to the output port', bn: 'সাময়িকের মান আউটপুট পোর্টে পাঠায়', cyc: '২' },
+  { bin: '১১১১', hex: 'চ', m: 'থামো', type: 'স', en: 'Halt the processor', bn: 'প্রসেসর থামায়', cyc: '১' },
+];
+
+const terms = [
+  ['Register', 'রেজিস্টার', 'সাময়িক'],
+  ['RAM', 'র‍্যাম', 'স্মৃতি'],
+  ['Bus', 'বাস', 'সড়ক'],
+  ['Instruction set', 'ইনস্ট্রাকশন সেট', 'নির্দেশ-শৃঙ্খল'],
+  ['Opcode', 'ওকোড', 'নির্দেশ-সংকেত'],
+  ['Assembler', 'অ্যাসেম্বলার', 'বিন্যাসক'],
+  ['Compiler', 'কম্পাইলার', 'রূপান্তরক'],
+  ['Logic gate', 'লজিক গেট', 'যুক্তি নিয়ন্ত্রক'],
+  ['File path', 'পাথ', 'অন্বয়'],
+  ['File extension', 'এক্সটেনশন', 'প্রত্যয়'],
+];
+
+const cite = `@techreport{hasan2026nirdeshika,
+  author      = {Hasan, Rahat},
+  title       = {Nirdeshika-16 Instruction Set Architecture
+                 Specification, Version 1.0.0},
+  institution = {Akkhar Labs},
+  address     = {Bogura, Bangladesh},
+  year        = {2026},
+  language    = {Bengali},
+  url         = {https://github.com/akkhar-labs/Nirdeshika-16}
+}`;
+
+const toc = [
+  { id: 'overview', label: L('Overview', 'সারকথা') },
+  { id: 'format', label: L('Instruction format', 'নির্দেশের বিন্যাস') },
+  { id: 'instructions', label: L('The sixteen instructions', 'ষোলোটি নির্দেশ') },
+  { id: 'registers', label: L('Registers', 'সাময়িক') },
+  { id: 'addressing', label: L('Addressing modes', 'ঠিকানা পদ্ধতি') },
+  { id: 'terms', label: L('Bengali terminology', 'বাংলা পরিভাষা') },
+  { id: 'implementation', label: L('Implementation', 'বাস্তবায়ন') },
+  { id: 'spec', label: L('Specification and citation', 'বিবরণী ও উদ্ধৃতি') },
+];
+---
+<ProjectLayout
+  lang={lang}
+  slug="nirdeshika-16"
+  toc={toc}
+  schemaType="TechArticle"
+  description={L(
+    'Nirdeshika-16 is a 16-bit load–store instruction set architecture written in Bengali: 16 instructions, 19 registers, fixed 16-bit encoding and 65,536 memory addresses.',
+    'নির্দেশিকা-১৬ বাংলায় লেখা একটি ১৬-বিট আদান-প্রদান ভিত্তিক নির্দেশনা-সেট স্থাপত্য: ১৬টি নির্দেশ, ১৯টি সাময়িক, স্থির ১৬-বিট এনকোডিং এবং ৬৫,৫৩৬টি স্মৃতি-ঠিকানা।'
+  )}
+  extraMeta={[
+    { label: L('Instruction width', 'নির্দেশের দৈর্ঘ্য'), value: L('16 bits, fixed', '১৬ বিট, স্থির') },
+    { label: L('Registers', 'সাময়িক'), value: L('16 general, 3 special', '১৬টি সাধারণ, ৩টি বিশেষ') },
+    { label: L('Memory', 'স্মৃতি'), value: L('65,536 addresses, little-endian', '৬৫,৫৩৬টি ঠিকানা, লিটল-এন্ডিয়ান') },
+  ]}
+>
+  <h2 id="overview">{L('Overview', 'সারকথা')}</h2>
+  <p>{L(
+    'Nirdeshika-16 is a 16-bit processor architecture whose human-facing layer is Bengali. Instruction names, register names, numbers and documentation are Bengali; the hardware still executes binary. A programmer can read and write a Nirdeshika-16 program without any English.',
+    'নির্দেশিকা-১৬ একটি ১৬-বিট প্রসেসর স্থাপত্য, যার মানুষের সঙ্গে যোগাযোগের স্তরটি বাংলা। নির্দেশের নাম, সাময়িকের নাম, সংখ্যা ও নথিপত্র বাংলায়; হার্ডওয়্যার অবশ্য বাইনারিই চালায়। একজন প্রোগ্রামার কোনো ইংরেজি ছাড়াই নির্দেশিকা-১৬ প্রোগ্রাম পড়তে ও লিখতে পারেন।'
+  )}</p>
+  <p>{L(
+    'It is a load–store design: arithmetic happens between registers, never directly on memory. Every instruction is exactly 16 bits (two bytes), memory holds 65,536 addresses, and multi-byte values are little-endian. Bits are numbered from 0 on the right to 15 on the left.',
+    'এটি আদান-প্রদান ভিত্তিক নকশা: গাণিতিক কাজ হয় সাময়িকগুলোর মধ্যে, সরাসরি স্মৃতিতে কখনো নয়। প্রতিটি নির্দেশ ঠিক ১৬ বিট (দুই বাইট), স্মৃতিতে ৬৫,৫৩৬টি ঠিকানা, আর একাধিক বাইটের মান লিটল-এন্ডিয়ান। বিট গোনা হয় ডান দিকের ০ থেকে বাঁ দিকের ১৫ পর্যন্ত।'
+  )}</p>
+
+  <h2 id="format">{L('Instruction format', 'নির্দেশের বিন্যাস')}</h2>
+  <p>{L(
+    'Each instruction is split into three fields: a 4-bit opcode, a 4-bit register identifier and an 8-bit value or address. Register-to-register instructions use the low byte for a second register and four reserved bits.',
+    'প্রতিটি নির্দেশ তিন ভাগে বিভক্ত: ৪-বিটের ওকোড, ৪-বিটের সাময়িক আইডি এবং ৮-বিটের মান বা ঠিকানা। দুই সাময়িকের নির্দেশে নিচের বাইটে থাকে দ্বিতীয় সাময়িক ও চারটি সংরক্ষিত বিট।'
+  )}</p>
+  <Figure
+    wide
+    caption={L('Figure 1. The 4-4-8 instruction format, with the specification’s example: placing 10 in register 1.', 'চিত্র ১. ৪-৪-৮ নির্দেশ-বিন্যাস, বিবরণীর উদাহরণসহ: সাময়িক-১ এ ১০ রাখা।')}
+    source={L('Source: Nirdeshika-16 specification 1.0.0, section 4.1', 'উৎস: নির্দেশিকা-১৬ বিবরণী ১.০.০, অনুচ্ছেদ ৪.১')}
+  >
+    <InstructionFormat lang={lang} />
+  </Figure>
+
+  <h2 id="instructions">{L('The sixteen instructions', 'ষোলোটি নির্দেশ')}</h2>
+  <p>{L(
+    'Instructions fall into three kinds: স-ধরণ works between registers, ম-ধরণ carries an 8-bit value or address inside the instruction, and প-ধরণ changes the flow of the program. Opcodes are written here in binary and in Akkhar-Hex.',
+    'নির্দেশ তিন ধরনের: স-ধরণ কাজ করে সাময়িকগুলোর মধ্যে, ম-ধরণ নির্দেশের ভেতরেই ৮-বিটের মান বা ঠিকানা বহন করে, আর প-ধরণ প্রোগ্রামের গতিপথ বদলায়। ওকোড এখানে বাইনারি ও অক্ষর-হেক্সে লেখা।'
+  )}</p>
+  <div class="table-wrap wide" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+    <table class="ops">
+      <caption>{L('Table 1. Opcodes, with clock cycles from the specification. Jumps take 2 cycles when taken.', 'সারণি ১. ওকোড, বিবরণী অনুযায়ী ক্লক চক্রসহ। লাফ দিলে প্রস্থান-নির্দেশে ২টি চক্র লাগে।')}</caption>
+      <thead><tr>
+        <th scope="col">{L('Binary', 'বাইনারি')}</th>
+        <th scope="col">{L('Akkhar-Hex', 'অক্ষর-হেক্স')}</th>
+        <th scope="col">{L('Instruction', 'নির্দেশ')}</th>
+        <th scope="col">{L('Kind', 'ধরণ')}</th>
+        <th scope="col">{L('Meaning', 'কাজ')}</th>
+        <th scope="col">{L('Cycles', 'চক্র')}</th>
+      </tr></thead>
+      <tbody>
+        {ops.map((o) => (
+          <tr>
+            <td class="mono" lang="bn">{o.bin}</td>
+            <td class="mono" lang="bn">{o.hex}</td>
+            <th scope="row" lang="bn" class="mn">{o.m}</th>
+            <td lang="bn">{o.type}</td>
+            <td>{lang === 'bn' ? o.bn : o.en}</td>
+            <td lang="bn">{o.cyc}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>{L(
+    'Bitwise NOT has no opcode of its own. বিপরীত is a pseudo-instruction: the assembler rewrites it as বিচিত্র with ০ব১১১১১১১১, which costs no extra hardware cycle.',
+    'বিটভিত্তিক বিপরীতের (NOT) আলাদা কোনো ওকোড নেই। বিপরীত একটি ছদ্ম-নির্দেশ: বিন্যাসক একে ০ব১১১১১১১১ দিয়ে বিচিত্র নির্দেশে রূপান্তর করে, ফলে বাড়তি কোনো হার্ডওয়্যার চক্র লাগে না।'
+  )}</p>
+
+  <h2 id="registers">{L('Registers', 'সাময়িক')}</h2>
+  <p>{L(
+    'There are nineteen registers: sixteen general-purpose registers, সাময়িক-০ to সাময়িক-১৫, and three special ones. Each general register also has a Bengali letter name, from শূণ্য for 0 through ক, খ, গ … ণ for 1 to 15.',
+    'মোট উনিশটি সাময়িক: সাময়িক-০ থেকে সাময়িক-১৫ পর্যন্ত ষোলোটি সাধারণ সাময়িক এবং তিনটি বিশেষ সাময়িক। প্রতিটি সাধারণ সাময়িকের একটি বাংলা বর্ণ-নামও আছে: ০-এর জন্য শূণ্য, আর ১ থেকে ১৫-এর জন্য ক, খ, গ … ণ।'
+  )}</p>
+  <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+    <table>
+      <caption>{L('Table 2. Register roles by convention', 'সারণি ২. প্রথাগত ভূমিকা অনুযায়ী সাময়িক')}</caption>
+      <thead><tr><th scope="col">{L('Register', 'সাময়িক')}</th><th scope="col">{L('Role', 'ভূমিকা')}</th></tr></thead>
+      <tbody>
+        <tr><td lang="bn">সাময়িক-০ (শূণ্য)</td><td>{L('Always holds 0; read-only, used for clearing', 'সর্বদা ০ ধারণ করে; শুধু পড়া যায়, মান মোছার কাজে ব্যবহৃত')}</td></tr>
+        <tr><td lang="bn">সাময়িক-১ (ক)</td><td>{L('Return value', 'কাজ শেষে ফলাফল ফেরত')}</td></tr>
+        <tr><td lang="bn">সাময়িক-২ – সাময়িক-৫ (খ–ঙ)</td><td>{L('Parameters 1 to 4', 'উপকরণ বা প্যারামিটার ১ থেকে ৪')}</td></tr>
+        <tr><td lang="bn">সাময়িক-৬ – সাময়িক-৯ (চ–ঝ)</td><td>{L('Temporary values 1 to 4', 'অস্থায়ী উপাত্ত ১ থেকে ৪')}</td></tr>
+        <tr><td lang="bn">সাময়িক-১০ – সাময়িক-১৪ (ঞ–ঢ)</td><td>{L('Long-lived values 1 to 5', 'দীর্ঘমেয়াদি উপাত্ত ১ থেকে ৫')}</td></tr>
+        <tr><td lang="bn">সাময়িক-১৫ (ণ)</td><td>{L('Last general-purpose register', 'সাধারণ ব্যবহারের শেষ সাময়িক')}</td></tr>
+        <tr><td lang="bn">ন-নি</td><td>{L('Instruction pointer (program counter)', 'নির্দেশ-নির্দেশক (প্রোগ্রাম কাউন্টার)')}</td></tr>
+        <tr><td lang="bn">শ-নি</td><td>{L('Stack pointer', 'শৃঙ্খল-নির্দেশক (স্ট্যাক পয়েন্টার)')}</td></tr>
+        <tr><td lang="bn">অ-সা</td><td>{L('Status register: zero, overflow, negative and error bits', 'অবস্থা-সাময়িক: শূন্যতা, উপচয়, ঋণাত্মক ও ত্রুটি বিট')}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="addressing">{L('Addressing modes', 'ঠিকানা পদ্ধতি')}</h2>
+  <ol>
+    <li><strong>{L('Immediate.', 'সরাসরি মান।')}</strong> {L('The value sits in the instruction’s low byte: ', 'মানটি নির্দেশের নিচের বাইটেই থাকে: ')}<code lang="bn">স্থানান্তর সাময়িক-১, ১০ ।</code></li>
+    <li><strong>{L('Register.', 'সাময়িক।')}</strong> {L('Operands are registers: ', 'উপাদান হলো সাময়িক: ')}<code lang="bn">সংযোজন সাময়িক-১, সাময়িক-২ ।</code></li>
+    <li><strong>{L('Direct memory.', 'প্রত্যক্ষ স্মৃতি।')}</strong> {L('The instruction carries a memory address: ', 'নির্দেশে একটি স্মৃতি-ঠিকানা থাকে: ')}<code lang="bn">আদান সাময়িক-১, ০ষ৩২ ।</code></li>
+    <li><strong>{L('Indirect.', 'পরোক্ষ।')}</strong> {L('A register holds the address, written ', 'একটি সাময়িকে ঠিকানা থাকে, লেখা হয় ')}<code lang="bn">[সাময়িক-২]</code>{L('. Reserved for a future version: version 1.0.0 has no bit to mark it.', '। ভবিষ্যৎ সংস্করণের জন্য সংরক্ষিত: সংস্করণ ১.০.০-এ একে চিহ্নিত করার কোনো বিট নেই।')}</li>
+  </ol>
+  <p>{L('Numbers are written with Bengali prefixes: ', 'সংখ্যা লেখা হয় বাংলা উপসর্গ দিয়ে: ')}<code lang="bn">০ব১০১০</code> {L('for binary, ', 'বাইনারির জন্য, ')}<code lang="bn">০ষ১এ৪ক</code> {L('for hexadecimal, and no prefix for decimal. See ', 'ষোড়শিকের জন্য, আর দশমিকের জন্য কোনো উপসর্গ নেই। বিস্তারিত দেখুন ')}<a href={pathFor(lang, '/projects/akkhar-hex/')}>{L('Akkhar-Hex', 'অক্ষর-হেক্স')}</a>{L('.', ' পাতায়।')}</p>
+
+  <h2 id="terms">{L('Bengali terminology', 'বাংলা পরিভাষা')}</h2>
+  <p>{L('The specification introduces Bengali terms for core computing concepts. A selection:', 'বিবরণীতে মৌলিক কম্পিউটিং ধারণার জন্য নতুন বাংলা পরিভাষা দেওয়া হয়েছে। কয়েকটি:')}</p>
+  <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+    <table>
+      <caption>{L('Table 3. Conventional term and Nirdeshika-16 term', 'সারণি ৩. প্রচলিত পরিভাষা ও নির্দেশিকা-১৬ পরিভাষা')}</caption>
+      <thead><tr>{lang === 'en' && <th scope="col">English</th>}<th scope="col">{L('Common Bengali usage', 'প্রচলিত পরিভাষা')}</th><th scope="col">{L('Nirdeshika-16 term', 'নির্দেশিকা-১৬ পরিভাষা')}</th></tr></thead>
+      <tbody>{terms.map(([en, common, nir]) => <tr>{lang === 'en' && <td>{en}</td>}<td lang="bn">{common}</td><td lang="bn"><strong>{nir}</strong></td></tr>)}</tbody>
+    </table>
+  </div>
+
+  <h2 id="implementation">{L('Implementation', 'বাস্তবায়ন')}</h2>
+  <p>{L('Two working tools target Nirdeshika-16: ', 'নির্দেশিকা-১৬-এর জন্য দুটি কার্যকর টুল আছে: ')}<a href={pathFor(lang, '/projects/boyon/')}>{L('Boyon', 'বয়ন')}</a>{L(', the assembler, and ', ', অ্যাসেম্বলার; এবং ')}<a href={pathFor(lang, '/projects/shimu/')}>{L('Shimu', 'শিমু')}</a>{L(', the simulator. The ', ', সিমুলেটর। ')}<a href={pathFor(lang, '/projects/nirdeshika-sdk/')}>{L('Nirdeshika SDK', 'নির্দেশিকা এসডিকে')}</a>{L(' runs both with one command. You can also ', ' একটি কমান্ডে দুটোই চালায়। আপনি চাইলে ')}<a href={pathFor(lang, '/projects/nirdeshika-16/playground/')}>{L('run programs in the browser', 'ব্রাউজারেই প্রোগ্রাম চালাতে পারেন')}</a>{L('.', '।')}</p>
+  <p class="note">{L(
+    'Implementation note. Boyon 1.0 and Shimu 1.0 assign opcode খ (0xB) to বিপরীত (bitwise NOT) and treat the low byte of arithmetic and logic instructions as an immediate value. Specification 1.0.0 assigns খ to বৈষম্য-প্রস্থান and defines these instructions between two registers. The playground follows the tools.',
+    'বাস্তবায়ন-টীকা। বয়ন ১.০ ও শিমু ১.০ ওকোড খ (0xB)-কে বিপরীত (NOT) হিসেবে ব্যবহার করে এবং গাণিতিক ও যুক্তি-নির্দেশের নিচের বাইটকে সরাসরি মান হিসেবে ধরে। বিবরণী ১.০.০ খ-কে বৈষম্য-প্রস্থান হিসেবে নির্ধারণ করে এবং এসব নির্দেশ দুই সাময়িকের মধ্যে সংজ্ঞায়িত করে। খেলাঘরটি টুলগুলোকেই অনুসরণ করে।'
+  )}</p>
+
+  <h2 id="spec">{L('Specification and citation', 'বিবরণী ও উদ্ধৃতি')}</h2>
+  <p>{L(
+    `The full specification is written in Bengali: ${spec.pdf.pages} pages covering the design, every instruction with its bit layout, pseudocode and timing, the register file and the addressing modes. It is released under CC BY-NC 4.0; commercial use needs the architect’s written permission.`,
+    `পূর্ণ বিবরণীটি বাংলায় লেখা: ${num('bn', spec.pdf.pages ?? 0)} পৃষ্ঠায় নকশা, প্রতিটি নির্দেশের বিট-বিন্যাস, ছদ্মকোড ও সময়, সাময়িক এবং ঠিকানা পদ্ধতির বর্ণনা। এটি CC BY-NC 4.0 লাইসেন্সে উন্মুক্ত; বাণিজ্যিক ব্যবহারের জন্য স্থপতির লিখিত অনুমতি প্রয়োজন।`
+  )}</p>
+  <p class="sans downloads">
+    <a href={spec.pdf.href} download>{L('Download the specification (PDF, Bengali', 'বিবরণী ডাউনলোড করুন (পিডিএফ, বাংলা')}, {formatBytes(lang, spec.pdf.bytes ?? 0)})</a>
+    <a href={pathFor(lang, '/publications/nirdeshika-16-specification/')}>{L('Publication record', 'প্রকাশনার তথ্য')}</a>
+  </p>
+  <CodeBlock code={cite} label="BibTeX" copyLabel={L('Copy', 'কপি')} copiedLabel={L('Copied', 'কপি হয়েছে')} />
+</ProjectLayout>
+
+<style>
+  .ops .mn { white-space: nowrap; font-weight: 600; font-family: var(--font-serif); font-size: var(--fs-3); }
+  .mono { font-family: var(--font-mono); white-space: nowrap; }
+  .note { font-family: var(--font-sans); font-size: var(--fs-2); color: var(--ink-2); border-left: 2px solid var(--rule); padding-left: var(--s-4); }
+  .downloads { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5); }
+  .table-wrap { overflow-x: auto; }
+</style>

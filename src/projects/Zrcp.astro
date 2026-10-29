@@ -1,0 +1,99 @@
+---
+import ProjectLayout from '../layouts/ProjectLayout.astro';
+import Figure from '../components/figures/Figure.astro';
+import PromptOrder from '../components/figures/PromptOrder.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const copy = { copyLabel: L('Copy', 'কপি'), copiedLabel: L('Copied', 'কপি হয়েছে') };
+const stub = `[HASH_STUB]
+path/to/file.ts
+sha256:a1c4f89e3b7d702f...
+state:CACHED
+[/HASH_STUB]`;
+const toc = [
+  { id: 'problem', label: L('The problem', 'সমস্যা') },
+  { id: 'mechanisms', label: L('Four mechanisms', 'চারটি কৌশল') },
+  { id: 'prompt', label: L('Prompt assembly', 'প্রম্পট সাজানো') },
+  { id: 'versions', label: L('Versions', 'সংস্করণ') },
+  { id: 'evaluation', label: L('Evaluation', 'মূল্যায়ন') },
+  { id: 'next', label: L('What came next', 'এরপর যা এলো') },
+];
+---
+<ProjectLayout
+  lang={lang} slug="zrcp" toc={toc} schemaType="TechArticle"
+  description={L(
+    'ZRCP, the Zero-Redundancy Context Protocol, uses SHA-256 hash gating, history deduplication, hash stubs and attention-anchored rebasing to stop AI coding agents resending unchanged files.',
+    'ZRCP বা জিরো-রিডানডেন্সি কনটেক্সট প্রোটোকল এসএইচএ-২৫৬ হ্যাশ-যাচাই, ইতিহাস থেকে পুনরাবৃত্তি বাদ, হ্যাশ-স্টাব ও মনোযোগ-নোঙর পুনর্বিন্যাস দিয়ে এআই কোডিং এজেন্টকে অপরিবর্তিত ফাইল বারবার পাঠানো থেকে বিরত রাখে।'
+  )}
+  extraMeta={[
+    { label: 'DOI', value: '10.5281/zenodo.21955969', href: 'https://doi.org/10.5281/zenodo.21955969', lang: 'en' },
+    { label: L('Production variant', 'ব্যবহারিক রূপ'), value: 'ZRCP-REBASE (V3)', lang: 'en' },
+  ]}
+>
+  <h2 id="problem">{L('The problem', 'সমস্যা')}</h2>
+  <p>{L(
+    'Agentic coding tools send file contents to a language model again and again during a task. Files that have not changed are often re-read and re-sent on every prompt. The tokens are paid for, the context window fills with copies, and the model sees several versions of the same file.',
+    'এজেন্টিক কোডিং টুল একটি কাজের সময় বারবার ফাইলের বিষয়বস্তু ভাষা মডেলের কাছে পাঠায়। যে ফাইল বদলায়নি, সেটিও প্রায়ই প্রতিটি প্রম্পটে নতুন করে পড়া ও পাঠানো হয়। এর টোকেনের দাম দিতে হয়, কনটেক্সট উইন্ডো কপিতে ভরে যায়, আর মডেল একই ফাইলের কয়েকটি সংস্করণ দেখে।'
+  )}</p>
+
+  <h2 id="mechanisms">{L('Four mechanisms', 'চারটি কৌশল')}</h2>
+  <p>{L('The specification defines ZRCP as all four of the following together. An implementation missing any of them is not ZRCP.', 'বিবরণী অনুযায়ী নিচের চারটি একসঙ্গে মিলেই ZRCP। এর কোনো একটি বাদ পড়লে তা ZRCP নয়।')}</p>
+  <ol>
+    <li><strong>{L('Hash-gated file transmission.', 'হ্যাশ-যাচাইকৃত ফাইল প্রেরণ।')}</strong> {L('Each file is hashed with SHA-256. If the hash matches the last one seen, the full content is not sent again.', 'প্রতিটি ফাইলের এসএইচএ-২৫৬ হ্যাশ নেওয়া হয়। আগের দেখা হ্যাশের সঙ্গে মিললে পুরো বিষয়বস্তু আবার পাঠানো হয় না।')}</li>
+    <li><strong>{L('Conversation-history deduplication.', 'কথোপকথনের ইতিহাস থেকে পুনরাবৃত্তি বাদ।')}</strong> {L('Older copies of unchanged files in the conversation are removed or replaced.', 'কথোপকথনে থাকা অপরিবর্তিত ফাইলের পুরোনো কপি সরানো বা বদলানো হয়।')}</li>
+    <li><strong>{L('Hash stub replacement.', 'হ্যাশ-স্টাব দিয়ে প্রতিস্থাপন।')}</strong> {L('An unchanged file is represented by a short content-addressed reference, typically 80–150 tokens instead of the whole file.', 'অপরিবর্তিত ফাইলকে একটি ছোট কনটেন্ট-অ্যাড্রেসড উল্লেখ দিয়ে বোঝানো হয়; সাধারণত পুরো ফাইলের বদলে ৮০–১৫০ টোকেন।')}</li>
+    <li><strong>{L('Attention-anchored authoritative rebasing.', 'মনোযোগ-নোঙর প্রামাণ্য পুনর্বিন্যাস।')}</strong> {L('The current state of each file is placed near the end of the prompt and treated as the source of truth, where transformer recency bias works in its favour.', 'প্রতিটি ফাইলের বর্তমান অবস্থা প্রম্পটের শেষের দিকে রাখা হয় এবং সেটিকেই সত্যের উৎস ধরা হয়; সেখানে ট্রান্সফরমারের সাম্প্রতিকতার ঝোঁক এর পক্ষে কাজ করে।')}</li>
+  </ol>
+  <CodeBlock code={stub} label={L('Hash stub format (specification 8.3)', 'হ্যাশ-স্টাবের বিন্যাস (বিবরণী ৮.৩)')} {...copy} />
+
+  <h2 id="prompt">{L('Prompt assembly', 'প্রম্পট সাজানো')}</h2>
+  <Figure caption={L('Figure 1. Order in which ZRCP assembles a prompt. Unchanged files appear only as stubs; their current content appears once, last.', 'চিত্র ১. ZRCP যে ক্রমে প্রম্পট সাজায়। অপরিবর্তিত ফাইল কেবল স্টাব হিসেবে আসে; তাদের বর্তমান বিষয়বস্তু আসে একবার, সবশেষে।')} source={L('Source: ZRCP specification 1.0.0, section 7.2', 'উৎস: ZRCP বিবরণী ১.০.০, অনুচ্ছেদ ৭.২')}>
+    <PromptOrder lang={lang} />
+  </Figure>
+
+  <h2 id="versions">{L('Versions', 'সংস্করণ')}</h2>
+  <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+    <table>
+      <thead><tr><th scope="col">{L('Version', 'সংস্করণ')}</th><th scope="col">{L('Idea', 'ধারণা')}</th><th scope="col">{L('Status', 'অবস্থা')}</th></tr></thead>
+      <tbody>
+        <tr><td class="nw">V1 · ZRCP Base</td><td>{L('Single transmission using hash references; limited by lost-in-the-middle effects', 'হ্যাশ-উল্লেখ দিয়ে একবার প্রেরণ; মাঝখানে হারিয়ে যাওয়ার সমস্যায় সীমিত')}</td><td>{L('Historical', 'পুরোনো')}</td></tr>
+        <tr><td class="nw">V2 · ZRCP-SWAP</td><td>{L('Dynamic repositioning of relevant files; diff reconstruction was complex', 'প্রাসঙ্গিক ফাইলের গতিশীল স্থান বদল; পার্থক্য পুনর্গঠন জটিল ছিল')}</td><td>{L('Historical', 'পুরোনো')}</td></tr>
+        <tr><td class="nw">V3 · ZRCP-REBASE</td><td>{L('Full authoritative file state appended at the end of the prompt', 'ফাইলের পূর্ণ প্রামাণ্য অবস্থা প্রম্পটের শেষে যুক্ত')}</td><td><strong>{L('Production', 'ব্যবহারে আছে')}</strong></td></tr>
+        <tr><td class="nw">V4 · ZRCP-SELECT</td><td>{L('Task-aware file selection', 'কাজ অনুযায়ী ফাইল নির্বাচন')}</td><td>{L('Planned', 'পরিকল্পিত')}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="evaluation">{L('Evaluation', 'মূল্যায়ন')}</h2>
+  <p>{L(
+    'A reference implementation was run on 23 June 2026 on a five-phase agentic coding workflow that implemented JWT authentication across five repository files, using DeepSeek V4 Flash. Token use with ZRCP was measured directly. The comparison baseline was not measured: it was estimated from prompt-construction patterns and source-code audits of three open-source agentic coding tools, because those tools do not expose complete prompts.',
+    'একটি রেফারেন্স বাস্তবায়ন ২৩ জুন ২০২৬ তারিখে ডিপসিক ভি৪ ফ্ল্যাশ ব্যবহার করে পাঁচ ধাপের একটি এজেন্টিক কোডিং কাজে চালানো হয়, যেখানে পাঁচটি রিপোজিটরি ফাইলজুড়ে জেডব্লিউটি প্রমাণীকরণ যোগ করা হয়। ZRCP-সহ টোকেন ব্যবহার সরাসরি মাপা হয়েছে। তুলনার ভিত্তি মাপা হয়নি: তিনটি ওপেন-সোর্স এজেন্টিক কোডিং টুলের প্রম্পট গঠন ও সোর্স কোড নিরীক্ষা থেকে এটি অনুমান করা হয়েছে, কারণ সেই টুলগুলো পূর্ণ প্রম্পট প্রকাশ করে না।'
+  )}</p>
+  <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+    <table>
+      <caption>{L('Table 1. Results as reported in the specification, section 12.3', 'সারণি ১. বিবরণীর অনুচ্ছেদ ১২.৩-এ প্রকাশিত ফলাফল')}</caption>
+      <thead><tr><th scope="col">{L('Quantity', 'পরিমাপ')}</th><th scope="col">{L('Value', 'মান')}</th><th scope="col">{L('How obtained', 'কীভাবে পাওয়া')}</th></tr></thead>
+      <tbody>
+        <tr><td>{L('Tokens used with ZRCP', 'ZRCP-সহ ব্যবহৃত টোকেন')}</td><td class="nw">{L('18,990', '১৮,৯৯০')}</td><td><strong>{L('Measured', 'মাপা')}</strong></td></tr>
+        <tr><td>{L('Baseline without ZRCP', 'ZRCP ছাড়া ভিত্তি')}</td><td class="nw">{L('85,455', '৮৫,৪৫৫')}</td><td>{L('Estimated', 'অনুমিত')}</td></tr>
+        <tr><td>{L('Relative reduction', 'আপেক্ষিক হ্রাস')}</td><td class="nw">{L('50–80%', '৫০–৮০%')}</td><td>{L('Estimated range', 'অনুমিত পরিসর')}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>{L(
+    'The specification describes this as an implementation validation rather than a benchmark. Its model predicts no saving on the first prompt, 50–80% in short sessions and 85–98% in long sessions with sparse edits. Multi-repository runs, long sessions and direct instrumentation of comparable tools are listed as future work.',
+    'বিবরণী একে বেঞ্চমার্ক নয়, বাস্তবায়নের যাচাই হিসেবে বর্ণনা করে। এর মডেল অনুযায়ী প্রথম প্রম্পটে কোনো সাশ্রয় নেই, ছোট সেশনে ৫০–৮০% এবং অল্প পরিবর্তনসহ দীর্ঘ সেশনে ৮৫–৯৮%। একাধিক রিপোজিটরিতে পরীক্ষা, দীর্ঘ সেশন ও তুলনীয় টুলের সরাসরি পরিমাপ ভবিষ্যৎ কাজ হিসেবে তালিকাভুক্ত।'
+  )}</p>
+
+  <h2 id="next">{L('What came next', 'এরপর যা এলো')}</h2>
+  <p>{L('ZRCP’s ideas were developed into ', 'ZRCP-এর ধারণাগুলো আরও বিকশিত হয়েছে ')}<a href={pathFor(lang, '/projects/hashedcontext/')}>HashedContext</a>{L(', which shortens stubs to about 35 tokens, adds a local content-addressed vault, analyses the effect on GPU memory and serving concurrency, and measures the baseline directly.', '-এ, যেখানে স্টাব প্রায় ৩৫ টোকেনে নেমে এসেছে, যুক্ত হয়েছে স্থানীয় কনটেন্ট-অ্যাড্রেসড ভল্ট, জিপিইউ মেমরি ও সার্ভিং-সক্ষমতার ওপর প্রভাব বিশ্লেষণ করা হয়েছে, এবং ভিত্তি সরাসরি মাপা হয়েছে।')}</p>
+</ProjectLayout>
+
+<style>
+  .table-wrap { overflow-x: auto; }
+  .nw { white-space: nowrap; font-variant-numeric: tabular-nums; }
+</style>

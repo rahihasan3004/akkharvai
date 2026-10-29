@@ -1,0 +1,66 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import { pathFor, t, type Lang } from '../i18n/ui';
+import { rahat } from '../data/lab';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+---
+<Base lang={lang} title={L('About', 'পরিচিতি')} description={L('Akkhar Labs is an independent research and engineering lab in Bogura, Bangladesh, designing computing around human language.', 'অক্ষর ল্যাবস বগুড়া, বাংলাদেশের একটি স্বাধীন গবেষণা ও প্রকৌশল ল্যাব, যা মানুষের ভাষাকে ঘিরে কম্পিউটিং নকশা করে।')}>
+  <PageHeader lang={lang} crumbs={[{ label: L('About', 'পরিচিতি') }]} title={L('About Akkhar Labs', 'অক্ষর ল্যাবস পরিচিতি')} lead={t(lang, 'lab.description')} />
+
+  <Section id="mission" title={L('Mission', 'লক্ষ্য')}>
+    <div class="prose measure">
+      <p class="bn-line" lang="bn">{t('bn', 'mission')}</p>
+      {lang === 'en' && <p class="meta">{t('en', 'mission')}</p>}
+      <p>{L(
+        'Modern computing is built around English-first assumptions, and that shuts out a great many people who want to understand, build and control the technology they use. Akkhar Labs builds alternatives, starting from Bangladesh, in which computing is designed around human language rather than the other way round.',
+        'আধুনিক কম্পিউটিং ইংরেজি-প্রথম ধারণার ওপর গড়া, আর তা অসংখ্য মানুষকে বাইরে রাখে, যাঁরা নিজেদের ব্যবহৃত প্রযুক্তি বুঝতে, তৈরি করতে ও নিয়ন্ত্রণ করতে চান। অক্ষর ল্যাবস বাংলাদেশ থেকে শুরু করে বিকল্প তৈরি করে, যেখানে কম্পিউটিং মানুষের ভাষাকে ঘিরে নকশা করা হয়, উল্টোটা নয়।'
+      )}</p>
+      <p>{L('The name অক্ষর (akkhar) means letter, the unit a script is built from.', 'নাম অক্ষর: লিপি যে এককে গড়া, সেই বর্ণ।')}</p>
+    </div>
+  </Section>
+
+  <Section id="how" title={L('How we work', 'কাজের ধরন')}>
+    <ul class="points">
+      <li><strong>{L('Independent.', 'স্বাধীন।')}</strong> {L('An independent research and engineering lab, founded and run from Bogura.', 'একটি স্বাধীন গবেষণা ও প্রকৌশল ল্যাব, বগুড়া থেকে প্রতিষ্ঠিত ও পরিচালিত।')}</li>
+      <li><strong>{L('Open.', 'উন্মুক্ত।')}</strong> {L('Papers are archived on Zenodo with DOIs under CC BY 4.0. Source code and specifications are on GitHub.', 'গবেষণাপত্র CC BY 4.0 লাইসেন্সে ডিওআইসহ জেনোডোতে সংরক্ষিত। সোর্স কোড ও বিবরণী গিটহাবে।')}</li>
+      <li><strong>{L('Built, not described.', 'কেবল বর্ণনা নয়, তৈরি।')}</strong> {L('Every project listed as working can be downloaded and run today. Planned work is labelled as planned.', 'যে প্রকল্পকে কার্যকর বলা হয়েছে, তা আজই ডাউনলোড করে চালানো যায়। পরিকল্পিত কাজকে পরিকল্পিত বলেই চিহ্নিত করা হয়েছে।')}</li>
+      <li><strong>{L('Honest about evidence.', 'প্রমাণ নিয়ে সৎ।')}</strong> {L('Measured results and analytical projections are reported separately, and nothing here has been peer-reviewed yet.', 'মাপা ফলাফল ও বিশ্লেষণী প্রক্ষেপণ আলাদা করে জানানো হয়, এবং এখানকার কোনো কিছুই এখনো পিয়ার-রিভিউ হয়নি।')}</li>
+    </ul>
+  </Section>
+
+  <Section id="people" title={L('People', 'মানুষ')}>
+    <ul class="people">
+      <li>
+        <a class="nm" href={pathFor(lang, '/people/rahat-hasan/')}>{rahat.name[lang]}</a>
+        <span class="meta">{rahat.role[lang]}</span>
+      </li>
+    </ul>
+    <p class="meta">{L('Akkhar Labs is currently the work of one person. Collaborators will be listed here as they join.', 'অক্ষর ল্যাবস বর্তমানে একজন মানুষের কাজ। সহযোগীরা যোগ দিলে তাঁদের নাম এখানে থাকবে।')}</p>
+  </Section>
+
+  <Section id="collaborate" title={L('Collaborate', 'সহযোগিতা')}>
+    <div class="prose measure">
+      <p>{L('Akkhar Labs is looking for engineers, researchers and contributors interested in:', 'অক্ষর ল্যাবস এমন প্রকৌশলী, গবেষক ও অবদানকারী খুঁজছে, যাঁরা আগ্রহী:')}</p>
+      <ul>
+        <li>{L('AI infrastructure and developer tools', 'এআই অবকাঠামো ও ডেভেলপার টুলে')}</li>
+        <li>{L('Programming languages and compilers', 'প্রোগ্রামিং ভাষা ও কম্পাইলারে')}</li>
+        <li>{L('Operating systems and kernel design', 'অপারেটিং সিস্টেম ও কার্নেল নকশায়')}</li>
+        <li>{L('Hardware architecture and simulation', 'হার্ডওয়্যার স্থাপত্য ও সিমুলেশনে')}</li>
+      </ul>
+      <p><a href={pathFor(lang, '/contact/')}>{L('How to get in touch', 'যোগাযোগের উপায়')}</a></p>
+    </div>
+  </Section>
+</Base>
+<style>
+  .bn-line { font-family: var(--font-display-bn); font-size: var(--fs-5); line-height: 1.5; }
+  .points { list-style: none; padding: 0; border-top: var(--hairline); max-width: var(--measure); }
+  .points li { padding-block: var(--s-3); border-bottom: var(--hairline); }
+  .people { list-style: none; padding: 0; border-top: var(--hairline); margin-bottom: var(--s-4); }
+  .people li { display: flex; flex-direction: column; padding-block: var(--s-3); border-bottom: var(--hairline); }
+  .nm { font-family: var(--font-serif); font-weight: 600; font-size: var(--fs-4); }
+</style>

@@ -1,0 +1,73 @@
+/*
+  Akkhar Labs design tokens.
+  Components use these variables only — never raw values.
+  The colour values are parsed by the specimen page, so keep the
+  `--name: #RRGGBB;` form on one line each.
+*/
+:root {
+  /* Colour (light) */
+  --paper: #F7F5F0;
+  --ink: #1A1A18;
+  --ink-2: #55534E;
+  --rule: #D9D5CC;
+  --green: #006A45;
+  --red: #E81B2C;
+  --focus: var(--green);
+
+  /* Type families. Latin glyphs come from the first family; Bengali glyphs
+     fall through to the Bengali family, because only its Bengali subset is loaded. */
+  --font-serif: "Source Serif 4", "Noto Serif Bengali", Georgia, "Times New Roman", serif;
+  --font-display-bn: "Tiro Bangla", "Noto Serif Bengali", serif;
+  --font-sans: "IBM Plex Sans", "Noto Sans Bengali", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Noto Sans Bengali", ui-monospace, monospace;
+
+  /* Type scale: ratio 1.25 on an 18px body */
+  --fs-1: 0.875rem;   /* 14   metadata, captions */
+  --fs-2: 1rem;       /* 16   interface */
+  --fs-3: 1.125rem;   /* 18   body */
+  --fs-4: 1.406rem;   /* 22.5 h4, lead */
+  --fs-5: 1.75rem;    /* 28   h3 */
+  --fs-6: 2.188rem;   /* 35   h2 */
+  --fs-7: 2.75rem;    /* 44   h1, maximum on the site */
+
+  --lh-latin: 1.6;
+  --lh-bengali: 1.8;
+  --lh-tight: 1.2;
+
+  /* Spacing: 4px base */
+  --s-1: 0.25rem;  /* 4 */
+  --s-2: 0.5rem;   /* 8 */
+  --s-3: 0.75rem;  /* 12 */
+  --s-4: 1rem;     /* 16 */
+  --s-5: 1.5rem;   /* 24 */
+  --s-6: 2rem;     /* 32 */
+  --s-7: 3rem;     /* 48 */
+  --s-8: 4rem;     /* 64 */
+  --s-9: 6rem;     /* 96 */
+
+  /* Layout */
+  --max-width: 75rem;     /* 1200 */
+  --gutter: 1.5rem;       /* 24 */
+  --margin: 1rem;         /* 16 on mobile */
+  --measure: 68ch;
+  --hairline: 1px solid var(--rule);
+  --header-rule: 4px;
+}
+
+@media (min-width: 640px) {
+  :root { --margin: 1.5rem; }
+}
+@media (min-width: 960px) {
+  :root { --margin: 2rem; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141412;
+    --ink: #ECEAE4;
+    --ink-2: #A8A59D;
+    --rule: #403D38;
+    --green: #5FBF95;
+    --red: #F06470;
+  }
+}

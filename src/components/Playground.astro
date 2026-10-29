@@ -1,0 +1,232 @@
+---
+/**
+ * Nirdeshika-16 playground: write Bengali assembly, assemble with Boyon, run on Shimu — in the browser.
+ * Examples are the programs shipped in akkhar-labs/Boyon, unchanged.
+ */
+import { pathFor, type Lang } from '../i18n/ui';
+import { OPCODES } from '../lib/nirdeshika';
+
+interface Props { lang: Lang; compact?: boolean; id?: string }
+const { lang, compact = false, id = 'playground' } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+
+const examples = [
+  {
+    file: 'লুপ.বয়ন', label: L('Loop: count down from 5', 'লুপ: ৫ থেকে উল্টো গণনা'),
+    code: 'আদান সাময়িক-১ ৫\n\nশুরু:\nপ্রদর্শন সাময়িক-১\nসাম্য-প্রস্থান শেষ\nবিয়োজন সাময়িক-১ ১\nপ্রস্থান শুরু\n\nশেষ:\nথামো',
+  },
+  {
+    file: 'কোড.বয়ন', label: L('Addition and multiplication, with comments', 'যোগ ও গুণ, মন্তব্যসহ'),
+    code: '-- কোড.বয়ন\n-- এটি একটি গণিত প্রোগ্রাম\n-- প্রোগ্রামটি যোগ এবং গুণ দেখাবে\n\n-- প্রথমে সাময়িক-১ এ ১৫ রাখি\nআদান সাময়িক-১ ১৫  -- কাউন্টার শুরু\n\n-- সাময়িক-২ এ ২৫ রাখি\nআদান সাময়িক-২ ২৫  -- দ্বিতীয় মান\n\n-- যোগ করি\nসংযোজন সাময়িক-১ ২৫  -- ১৫ + ২৫ = ৪০\n\n-- ফলাফল দেখাই\nপ্রদর্শন সাময়িক-১  -- ৪০ দেখাবে\n\n-- এখন গুণ দেখি\nআদান সাময়িক-১ ৪  -- নতুন মান\nগুনন সাময়িক-১ ৩  -- ৪ × ৩ = ১২\n\n-- আবার ফলাফল দেখাই\nপ্রদর্শন সাময়িক-১  -- ১২ দেখাবে\n\n-- প্রোগ্রাম শেষ\nথামো',
+  },
+  {
+    file: 'গণনা.বয়ন', label: L('Repeated subtraction: 20 by fives', 'বারবার বিয়োগ: ২০ থেকে পাঁচ করে'),
+    code: 'আদান সাময়িক-১ ২০\nআদান সাময়িক-২ ৫\n\nশুরু:\nবিয়োজন সাময়িক-১ ৫\nপ্রদর্শন সাময়িক-১\nসাম্য-প্রস্থান শেষ\nপ্রস্থান শুরু\n\nশেষ:\nথামো',
+  },
+  {
+    file: 'গণিত.বয়ন', label: L('Arithmetic, without comments', 'গণিত, মন্তব্য ছাড়া'),
+    code: 'আদান সাময়িক-১ ১৫\nআদান সাময়িক-২ ২৫\nসংযোজন সাময়িক-১ ২৫\nপ্রদর্শন সাময়িক-১\nআদান সাময়িক-১ ৪\nগুনন সাময়িক-১ ৩\nপ্রদর্শন সাময়িক-১\nথামো',
+  },
+];
+const keys = [...Object.keys(OPCODES), 'সাময়িক-', '০ষ', '০ব', ':', '--'];
+const digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+
+const strings = {
+  outputs: L('Output', 'আউটপুট'),
+  noOutput: L('The program printed nothing. Add প্রদর্শন সাময়িক-১ to print a register.', 'প্রোগ্রামটি কিছু দেখায়নি। কোনো সাময়িকের মান দেখাতে প্রদর্শন সাময়িক-১ যোগ করুন।'),
+  register: L('register', 'সাময়িক'),
+  steps: L('instructions executed', 'টি নির্দেশ চালানো হয়েছে'),
+  bytes: L('bytes of machine code', 'বাইট মেশিন কোড'),
+  limit: L('Stopped after 100,000 instructions: the program never reached থামো.', '১,০০,০০০টি নির্দেশের পর থামানো হয়েছে: প্রোগ্রামটি থামো পর্যন্ত পৌঁছায়নি।'),
+  empty: L('Write at least one instruction first.', 'আগে অন্তত একটি নির্দেশ লিখুন।'),
+  more: L('and {n} more values (see the full report)', 'আরও {n}টি মান (পূর্ণ প্রতিবেদন দেখুন)'),
+};
+---
+<section class:list={['pg', { compact }]} id={id} data-playground data-lang={lang} data-strings={JSON.stringify(strings)} aria-label={L('Nirdeshika-16 playground', 'নির্দেশিকা-১৬ খেলাঘর')}>
+  <div class="pg-grid">
+    <div class="pg-edit">
+      <div class="pg-bar">
+        <label class="meta" for={`${id}-ex`}>{L('Example', 'উদাহরণ')}</label>
+        <select id={`${id}-ex`} data-examples>
+          {examples.map((e, i) => <option value={i} lang="bn">{e.file}</option>)}
+        </select>
+        <span class="meta ex-desc" data-ex-desc>{examples[0].label}</span>
+      </div>
+      <label class="visually-hidden" for={`${id}-src`}>{L('Bengali assembly source', 'বাংলা অ্যাসেম্বলি সোর্স')}</label>
+      <textarea id={`${id}-src`} lang="bn" spellcheck="false" autocomplete="off" autocapitalize="off" rows={compact ? 11 : 16} data-src>{examples[0].code}</textarea>
+      <p class="pg-err" role="alert" data-err hidden></p>
+      <div class="pg-actions">
+        <button type="button" class="run" data-run>{L('Assemble and run', 'অ্যাসেম্বল করে চালান')}</button>
+        <button type="button" data-reset>{L('Reset example', 'উদাহরণ ফিরিয়ে আনুন')}</button>
+      </div>
+      <details class="keys">
+        <summary class="meta">{L('Bengali keys: insert instructions without a Bengali keyboard', 'বাংলা কি: বাংলা কিবোর্ড ছাড়াই নির্দেশ বসান')}</summary>
+        <div class="keyrow" lang="bn">
+          {keys.map((k) => <button type="button" data-insert={k.endsWith('-') || k === '০ষ' || k === '০ব' || k === '--' || k === ':' ? k : `${k} `}>{k}</button>)}
+        </div>
+        <div class="keyrow" lang="bn">
+          {digits.map((d) => <button type="button" data-insert={d}>{d}</button>)}
+        </div>
+      </details>
+    </div>
+
+    <div class="pg-out" aria-live="polite">
+      <h3 class="out-h">{strings.outputs}</h3>
+      <ol class="outputs" data-outputs lang="bn"></ol>
+      <p class="meta stats" data-stats></p>
+      <div class="msgs" data-msgs></div>
+      {!compact && (
+        <>
+          <h3 class="out-h">{L('Machine code', 'মেশিন কোড')}</h3>
+          <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+            <table class="listing">
+              <thead><tr>
+                <th scope="col">{L('Address', 'ঠিকানা')}</th>
+                <th scope="col">{L('Instruction', 'নির্দেশ')}</th>
+                <th scope="col">{L('Akkhar-Hex', 'অক্ষর-হেক্স')}</th>
+                <th scope="col">{L('Binary (4-4-8)', 'বাইনারি (৪-৪-৮)')}</th>
+              </tr></thead>
+              <tbody data-listing lang="bn"></tbody>
+            </table>
+          </div>
+        </>
+      )}
+      <details class="report" open={!compact}>
+        <summary class="meta">{L('Full Shimu report (সিমুলেটর_ফলাফল.txt)', 'শিমুর পূর্ণ প্রতিবেদন (সিমুলেটর_ফলাফল.txt)')}</summary>
+        <pre lang="bn" data-report tabindex="0"></pre>
+      </details>
+    </div>
+  </div>
+  {compact && <p class="meta more"><a href={pathFor(lang, '/projects/nirdeshika-16/playground/')}>{L('Open the full playground, with the machine-code listing', 'মেশিন-কোড তালিকাসহ পূর্ণ খেলাঘর খুলুন')}</a></p>}
+  <script type="application/json" data-example-data set:html={JSON.stringify(examples)} />
+</section>
+
+<script>
+  import { assemble, simulate, bengaliInt, akkharNibble, akkharHex } from '../lib/nirdeshika';
+
+  const bnDigits = (s: string) => s.replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[Number(d)]);
+
+  document.querySelectorAll<HTMLElement>('[data-playground]').forEach((root) => {
+    const lang = root.dataset.lang;
+    const S = JSON.parse(root.dataset.strings ?? '{}');
+    const examples = JSON.parse(root.querySelector('[data-example-data]')?.textContent ?? '[]') as { file: string; label: string; code: string }[];
+    const src = root.querySelector<HTMLTextAreaElement>('[data-src]')!;
+    const select = root.querySelector<HTMLSelectElement>('[data-examples]')!;
+    const desc = root.querySelector<HTMLElement>('[data-ex-desc]')!;
+    const outList = root.querySelector<HTMLOListElement>('[data-outputs]')!;
+    const stats = root.querySelector<HTMLElement>('[data-stats]')!;
+    const msgs = root.querySelector<HTMLElement>('[data-msgs]')!;
+    const listing = root.querySelector<HTMLElement>('[data-listing]');
+    const report = root.querySelector<HTMLElement>('[data-report]')!;
+    const err = root.querySelector<HTMLElement>('[data-err]')!;
+
+    const word4 = (w: number) => [12, 8, 4, 0].map((s) => akkharNibble((w >> s) & 0xf)).join('');
+    const bin = (w: number) => {
+      const b = w.toString(2).padStart(16, '0');
+      return bnDigits(`${b.slice(0, 4)} ${b.slice(4, 8)} ${b.slice(8)}`);
+    };
+    const n = (v: number) => (lang === 'bn' ? bengaliInt(v) : v.toLocaleString('en-US'));
+
+    function run() {
+      const code = src.value;
+      if (!code.trim()) { err.textContent = S.empty; err.hidden = false; return; }
+      err.hidden = true;
+      const asm = assemble(code);
+      const sim = simulate(asm.bytes);
+      const lines = code.split(/\r?\n/);
+
+      const MAX = 64;
+      outList.replaceChildren(...sim.outputs.slice(0, MAX).map((o) => {
+        const li = document.createElement('li');
+        const v = document.createElement('span'); v.className = 'v'; v.textContent = bengaliInt(o.value);
+        const r = document.createElement('span'); r.className = 'r meta'; r.textContent = `সাময়িক-${bengaliInt(o.reg)} · ${akkharHex(o.value)}`;
+        li.append(v, r);
+        return li;
+      }));
+      if (sim.outputs.length > MAX) {
+        const li = document.createElement('li'); li.className = 'none'; li.lang = lang ?? 'en';
+        li.textContent = S.more.replace('{n}', n(sim.outputs.length - MAX));
+        outList.append(li);
+      }
+      if (!sim.outputs.length) {
+        const li = document.createElement('li'); li.className = 'none'; li.textContent = S.noOutput; li.lang = lang ?? 'en';
+        outList.append(li);
+      }
+      stats.textContent = `${n(sim.steps)} ${S.steps} · ${n(asm.bytes.length)} ${S.bytes}`;
+      msgs.replaceChildren(...[...asm.messages, ...(sim.stoppedAtLimit ? [S.limit] : [])].map((m) => {
+        const p = document.createElement('p'); p.textContent = m; return p;
+      }));
+      if (listing) {
+        listing.replaceChildren(...asm.listing.map((row, i) => {
+          const tr = document.createElement('tr');
+          const srcLine = (lines[row.line - 1] ?? '').replace(/(^|\s)--.*$/, '').trim();
+          [bengaliInt(i * 2), srcLine, word4(row.word), bin(row.word)].forEach((t, j) => {
+            const td = document.createElement('td'); td.textContent = t; if (j !== 1) td.className = 'mono'; tr.append(td);
+          });
+          return tr;
+        }));
+      }
+      report.textContent = sim.report;
+    }
+
+    select.addEventListener('change', () => {
+      const ex = examples[Number(select.value)];
+      src.value = ex.code; desc.textContent = ex.label; run();
+    });
+    root.querySelector('[data-run]')!.addEventListener('click', run);
+    root.querySelector('[data-reset]')!.addEventListener('click', () => {
+      const ex = examples[Number(select.value)]; src.value = ex.code; run();
+    });
+    root.querySelectorAll<HTMLButtonElement>('[data-insert]').forEach((b) => b.addEventListener('click', () => {
+      const t = b.dataset.insert ?? '';
+      const { selectionStart: s, selectionEnd: e, value } = src;
+      src.value = value.slice(0, s) + t + value.slice(e);
+      src.focus(); src.selectionStart = src.selectionEnd = s + t.length;
+    }));
+    src.addEventListener('keydown', (ev) => {
+      if ((ev.ctrlKey || ev.metaKey) && ev.key === 'Enter') { ev.preventDefault(); run(); }
+    });
+    run();
+  });
+</script>
+
+<style>
+  .pg { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding-block: var(--s-5); }
+  .pg-grid { display: grid; gap: var(--s-6); grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 960px) { .pg-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); } }
+  .pg-bar { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-2) var(--s-3); margin-bottom: var(--s-3); }
+  select {
+    font-family: var(--font-mono); font-size: var(--fs-2); background: var(--paper); color: var(--ink);
+    border: 1px solid var(--ink-2); border-radius: 0; padding: var(--s-1) var(--s-2);
+  }
+  textarea {
+    width: 100%; resize: vertical; font-family: var(--font-mono); font-size: var(--fs-3); line-height: 1.75;
+    background: var(--paper); color: var(--ink); border: 1px solid var(--ink-2); border-radius: 0;
+    padding: var(--s-3) var(--s-4); tab-size: 2;
+  }
+  textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 0; }
+  .pg-actions { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); }
+  .pg-actions button { font-size: var(--fs-2); padding: var(--s-2) var(--s-4); }
+  .run { border-color: var(--ink); border-left: 4px solid var(--green); color: var(--ink); font-weight: 500; }
+  .pg-err { color: var(--ink); border-left: 4px solid var(--red); padding-left: var(--s-3); margin-top: var(--s-2); font-family: var(--font-sans); font-size: var(--fs-2); }
+  .keys { margin-top: var(--s-4); }
+  .keys summary { cursor: pointer; }
+  .keyrow { display: flex; flex-wrap: wrap; gap: var(--s-1); margin-top: var(--s-2); }
+  .keyrow button { font-family: var(--font-sans); font-size: var(--fs-2); padding: var(--s-1) var(--s-2); }
+  .out-h { font-family: var(--font-sans); font-size: var(--fs-1); font-weight: 500; color: var(--ink-2); margin-bottom: var(--s-2); }
+  .out-h:not(:first-child) { margin-top: var(--s-6); }
+  .outputs { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .outputs :global(li) { display: flex; flex-direction: column; min-width: 5.5rem; padding: var(--s-2) var(--s-3); border: 1px solid var(--rule); border-top: 2px solid var(--green); }
+  .outputs :global(.v) { font-size: var(--fs-5); line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .outputs :global(.r) { font-size: 0.8125rem; }
+  .outputs :global(li.none) { border-top-color: var(--rule); font-family: var(--font-sans); font-size: var(--fs-2); min-width: 0; }
+  .stats { margin-top: var(--s-3); }
+  .msgs :global(p) { font-family: var(--font-sans); font-size: var(--fs-2); border-left: 4px solid var(--red); padding-left: var(--s-3); margin-top: var(--s-2); }
+  .table-wrap { overflow-x: auto; }
+  .listing { font-size: var(--fs-1); }
+  .listing :global(td.mono) { font-family: var(--font-mono); white-space: nowrap; }
+  .report { margin-top: var(--s-5); }
+  .report summary { cursor: pointer; }
+  .report pre { margin-top: var(--s-2); font-size: 0.8125rem; line-height: 1.7; white-space: pre-wrap; }
+  .more { margin-top: var(--s-4); }
+</style>

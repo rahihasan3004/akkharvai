@@ -1,0 +1,105 @@
+---
+import { site } from '../site.config';
+import { t, basePath, pathFor, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const other: Lang = lang === 'en' ? 'bn' : 'en';
+const path = basePath(Astro.url);
+
+const sections = [
+  { key: 'nav.research', href: '/research/' },
+  { key: 'nav.projects', href: '/projects/' },
+  { key: 'nav.publications', href: '/publications/' },
+  { key: 'nav.notes', href: '/notes/' },
+  { key: 'nav.ekushey', href: '/ekushey/' },
+  { key: 'nav.about', href: '/about/' },
+] as const;
+---
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href={pathFor(lang, '/')} aria-label={t(lang, 'home.label')}>
+      <img src="/logo.svg" width="44" height="44" alt="" />
+      <span class="names">
+        <span class="primary">{site.name[lang]}</span>
+        <span class="secondary" lang={other}>{site.name[other]}</span>
+      </span>
+    </a>
+    <nav aria-label={t(lang, 'nav.label')}>
+      <ul>
+        {sections.map((s) => {
+          const current = path.startsWith(s.href);
+          return (
+            <li>
+              <a href={pathFor(lang, s.href)} aria-current={current ? 'page' : undefined}>{t(lang, s.key)}</a>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+    <a
+      class="lang-switch"
+      href={pathFor(other, path)}
+      hreflang={other}
+      lang={other}
+      title={t(lang, 'lang.switchLabel')}
+    >{t(lang, 'lang.switch')}</a>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-top: var(--header-rule) solid var(--red);
+    border-bottom: var(--hairline);
+  }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--s-6);
+    row-gap: var(--s-3);
+    padding-block: var(--s-4);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    color: var(--ink);
+    text-decoration: none;
+    margin-right: auto;
+  }
+  .names { display: flex; flex-direction: column; line-height: 1.2; }
+  .primary { font-family: var(--font-serif); font-weight: 600; font-size: var(--fs-4); }
+  .secondary { font-family: var(--font-sans); font-size: var(--fs-1); color: var(--ink-2); }
+  .brand:hover .primary { color: var(--green); }
+
+  nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-1) var(--s-5);
+    list-style: none;
+    padding: 0;
+  }
+  nav a, .lang-switch {
+    font-family: var(--font-sans);
+    font-size: var(--fs-2);
+    color: var(--ink);
+    text-decoration: none;
+    padding-block: var(--s-1);
+  }
+  nav a:hover, .lang-switch:hover { color: var(--green); text-decoration: underline; text-decoration-thickness: 1px; }
+  nav a[aria-current='page'] {
+    color: var(--green);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+  .lang-switch {
+    border-left: var(--hairline);
+    padding-left: var(--s-5);
+  }
+
+  @media (max-width: 959px) {
+    nav { order: 3; width: 100%; border-top: var(--hairline); padding-top: var(--s-3); }
+    .lang-switch { border-left: 0; padding-left: 0; }
+  }
+</style>

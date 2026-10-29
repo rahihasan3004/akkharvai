@@ -1,0 +1,173 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import MetaRow from '../components/MetaRow.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { pathFor, num, type Lang } from '../i18n/ui';
+import { publication, project, areas, rahat, type Publication } from '../data/lab';
+import { abstracts } from '../data/abstracts';
+import { formatDate, formatBytes } from '../lib/format';
+import { site } from '../site.config';
+
+interface Props { lang: Lang; slug: Publication['slug'] }
+const { lang, slug } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const p = publication(slug);
+const proj = project(p.project);
+const ab = abstracts[slug];
+const pdfUrl = p.pdf.local ? new URL(p.pdf.href, site.url).href : p.pdf.href;
+const authorName = (n: string) => (lang === 'bn' && n === 'Rahat Hasan' ? rahat.name.bn : n);
+const title = lang === 'bn' && p.titleBn ? p.titleBn : p.title;
+const titleLang = lang === 'bn' && p.titleBn ? 'bn' : 'en';
+const [y, m, d] = p.date.split('-');
+
+const bibKey = { 'hashedcontext-2026': 'hasan2026hashedcontext', 'zrcp-2026': 'hasan2026zrcp', 'nirdeshika-16-specification': 'hasan2026nirdeshika' }[slug];
+const bibtex = slug === 'nirdeshika-16-specification'
+  ? `@techreport{${bibKey},
+  author      = {Hasan, Rahat},
+  title       = {Nirdeshika-16 Instruction Set Architecture
+                 Specification, Version 1.0.0},
+  institution = {Akkhar Labs},
+  address     = {Bogura, Bangladesh},
+  year        = {2026},
+  language    = {Bengali},
+  url         = {${pdfUrl}}
+}`
+  : `@misc{${bibKey},
+  author    = {Hasan, Rahat},
+  title     = {${p.title}},
+  year      = {${y}},
+  version   = {${p.version}},
+  publisher = {${p.publisher}},
+  doi       = {${p.doi}},
+  url       = {https://doi.org/${p.doi}}
+}`;
+const apa = slug === 'nirdeshika-16-specification'
+  ? `Hasan, R. (2026). Nirdeshika-16 instruction set architecture specification (Version 1.0.0) [Technical specification, in Bengali]. Akkhar Labs. ${pdfUrl}`
+  : `Hasan, R. (${y}). ${p.title} (Version ${p.version}) [${slug === 'zrcp-2026' ? 'Protocol specification' : 'Preprint'}]. ${p.publisher}. https://doi.org/${p.doi}`;
+
+const meta = [
+  { label: L('Published', 'প্রকাশ'), value: formatDate(lang, p.date) },
+  { label: L('Version', 'সংস্করণ'), value: p.version, lang: 'en' },
+  ...(p.doi ? [{ label: 'DOI', value: p.doi, href: `https://doi.org/${p.doi}`, lang: 'en' }] : []),
+  { label: L('Licence', 'লাইসেন্স'), value: p.license, href: p.licenseUrl, lang: 'en' },
+  { label: L('Language', 'ভাষা'), value: p.language === 'en' ? L('English', 'ইংরেজি') : L('Bengali', 'বাংলা') },
+  { label: L('Review', 'পর্যালোচনা'), value: p.peerReviewed ? L('Peer-reviewed', 'পিয়ার-রিভিউকৃত') : L('Not peer-reviewed', 'পিয়ার-রিভিউ হয়নি') },
+];
+
+const scholar: Record<string, string | string[]> = {
+  citation_title: p.title,
+  citation_author: p.authors.map(() => 'Hasan, Rahat'),
+  citation_publication_date: `${y}/${m}/${d}`,
+  citation_online_date: `${y}/${m}/${d}`,
+  citation_publisher: p.publisher,
+  citation_language: p.language,
+  citation_pdf_url: pdfUrl,
+  citation_abstract_html_url: new URL(pathFor('en', `/publications/${slug}/`), site.url).href,
+  citation_keywords: p.keywords.join('; '),
+  citation_author_institution: 'Akkhar Labs',
+  citation_author_orcid: `https://orcid.org/${rahat.orcid}`,
+};
+if (p.doi) scholar.citation_doi = p.doi;
+if (slug === 'nirdeshika-16-specification') scholar.citation_technical_report_institution = 'Akkhar Labs';
+
+const ld = {
+  '@context': 'https://schema.org',
+  '@type': slug === 'nirdeshika-16-specification' ? 'TechArticle' : 'ScholarlyArticle',
+  headline: p.title.slice(0, 110),
+  name: p.title,
+  alternativeHeadline: p.titleBn,
+  author: [{ '@type': 'Person', '@id': `${site.url}/people/rahat-hasan/#person`, name: 'Rahat Hasan', identifier: `https://orcid.org/${rahat.orcid}`, affiliation: { '@id': `${site.url}/#org` } }],
+  datePublished: p.date,
+  version: p.version,
+  inLanguage: p.language,
+  license: p.licenseUrl,
+  keywords: p.keywords,
+  abstract: ab.en.join(' '),
+  publisher: { '@type': 'Organization', name: p.publisher },
+  url: new URL(pathFor(lang, `/publications/${slug}/`), site.url).href,
+  ...(p.doi ? { identifier: { '@type': 'PropertyValue', propertyID: 'DOI', value: p.doi }, sameAs: [`https://doi.org/${p.doi}`, p.record].filter(Boolean) } : {}),
+  encoding: { '@type': 'MediaObject', contentUrl: pdfUrl, encodingFormat: 'application/pdf' },
+  about: { '@type': 'Thing', name: proj.name.en },
+};
+const shortTitle = { 'hashedcontext-2026': 'HashedContext', 'zrcp-2026': 'ZRCP', 'nirdeshika-16-specification': L('Nirdeshika-16 specification', 'নির্দেশিকা-১৬ বিবরণী') }[slug];
+const description = (lang === 'bn' ? ab.bn[0] : ab.en[0]).slice(0, 158).replace(/\s+\S*$/, '') + '…';
+---
+<Base lang={lang} title={shortTitle} description={description} jsonld={[ld]} scholar={scholar} ogType="article">
+  <PageHeader
+    lang={lang}
+    crumbs={[{ label: L('Publications', 'প্রকাশনা'), href: '/publications/' }, { label: shortTitle }]}
+    eyebrow={`${p.type[lang]} · ${num(lang, p.year)}`}
+    title={title}
+    titleLang={titleLang}
+  >
+    <p class="authors">
+      {p.authors.map((a) => (
+        <span>{authorName(a.name)}{a.orcid && <> <a class="orcid" href={`https://orcid.org/${a.orcid}`} aria-label={L(`ORCID record of ${a.name}`, `${authorName(a.name)}-এর অর্কিড রেকর্ড`)}>ORCID</a></>}</span>
+      ))}
+      <span class="meta">{L('Akkhar Labs, Bogura, Bangladesh', 'অক্ষর ল্যাবস, বগুড়া, বাংলাদেশ')}</span>
+    </p>
+    <MetaRow items={meta} label={L('Publication facts', 'প্রকাশনার তথ্য')} />
+    <p class="actions sans">
+      <a class="primary" href={p.pdf.href} download={p.pdf.local ? '' : undefined}>
+        {p.pdf.local ? L('Download PDF', 'পিডিএফ ডাউনলোড') : L('PDF on Zenodo', 'জেনোডোতে পিডিএফ')}
+        {p.pdf.bytes && <span class="meta"> ({formatBytes(lang, p.pdf.bytes)}{p.pdf.pages ? L(`, ${p.pdf.pages} pages`, `, ${num('bn', p.pdf.pages)} পৃষ্ঠা`) : ''})</span>}
+      </a>
+      {p.record && <a href={p.record}>{L('Zenodo record', 'জেনোডো রেকর্ড')}</a>}
+      {p.repo && <a href={p.repo}>{L('Source repository', 'সোর্স রিপোজিটরি')}</a>}
+      <a href={pathFor(lang, `/projects/${p.project}/`)}>{L('Project page', 'প্রকল্পের পাতা')}</a>
+    </p>
+  </PageHeader>
+
+  <div class="container body-grid">
+    <div class="side meta">
+      <p>{L('Research area', 'গবেষণার ক্ষেত্র')}</p>
+      <p><a href={pathFor(lang, `/research/${p.area}/`)}>{areas[p.area].title[lang]}</a></p>
+      <p class="kw-h">{L('Keywords', 'মূলশব্দ')}</p>
+      <ul class="kw" lang="en">{p.keywords.map((k) => <li>{k}</li>)}</ul>
+    </div>
+    <div class="main prose">
+      <h2 id="abstract">{slug === 'nirdeshika-16-specification' ? L('Summary', 'সারসংক্ষেপ') : L('Abstract', 'সারসংক্ষেপ')}</h2>
+      {lang === 'bn' && p.language === 'en' && <p class="note meta">মূল সারসংক্ষেপ ইংরেজিতে; নিচে বাংলা অনুবাদ।</p>}
+      {(lang === 'bn' ? ab.bn : ab.en).map((para) => <p>{para}</p>)}
+      {lang === 'en' && !ab.enIsVerbatim && <p class="note meta">Summary written by Akkhar Labs; the specification itself is in Bengali.</p>}
+
+      {p.versions && (
+        <>
+          <h2 id="versions">{L('Versions', 'সংস্করণ')}</h2>
+          <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+            <table>
+              <thead><tr><th scope="col">{L('Version', 'সংস্করণ')}</th><th scope="col">{L('Date', 'তারিখ')}</th><th scope="col">DOI</th></tr></thead>
+              <tbody>
+                {p.versions.map((v) => <tr><td>{v.version}</td><td>{formatDate(lang, v.date)}</td><td><a href={`https://doi.org/${v.doi}`}>{v.doi}</a></td></tr>)}
+              </tbody>
+            </table>
+          </div>
+          {p.conceptDoi && <p class="meta">{L('The concept DOI ', 'কনসেপ্ট ডিওআই ')}<a href={`https://doi.org/${p.conceptDoi}`}>{p.conceptDoi}</a>{L(' always resolves to the latest version.', ' সবসময় সর্বশেষ সংস্করণে নিয়ে যায়।')}</p>}
+        </>
+      )}
+
+      <h2 id="cite">{L('Cite', 'উদ্ধৃতি')}</h2>
+      <CodeBlock code={bibtex} label="BibTeX" copyLabel={L('Copy', 'কপি')} copiedLabel={L('Copied', 'কপি হয়েছে')} />
+      <CodeBlock wrap code={apa} label="APA" copyLabel={L('Copy', 'কপি')} copiedLabel={L('Copied', 'কপি হয়েছে')} />
+    </div>
+  </div>
+</Base>
+
+<style>
+  .authors { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-1) var(--s-4); margin-top: var(--s-5); font-size: var(--fs-4); }
+  .orcid { font-family: var(--font-sans); font-size: var(--fs-1); }
+  .actions { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5); margin-top: var(--s-5); font-size: var(--fs-2); }
+  .actions .primary { font-weight: 500; }
+  .body-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-6) var(--gutter); padding-bottom: var(--s-8); border-top: 1px solid var(--ink); padding-top: var(--s-6); }
+  @media (min-width: 960px) { .body-grid { grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); } }
+  .side p + p { margin-top: var(--s-1); }
+  .kw-h { margin-top: var(--s-5) !important; }
+  .kw { list-style: none; padding: 0; margin-top: var(--s-1); }
+  .kw li { padding-block: 2px; }
+  .main { max-width: var(--measure); }
+  .main h2 { font-size: var(--fs-5); }
+  .main > h2:first-child { margin-top: 0; }
+  .note { font-style: normal; }
+  .table-wrap { overflow-x: auto; }
+</style>

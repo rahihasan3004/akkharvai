@@ -1,0 +1,69 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+import { projects, plannedLayers } from '../data/lab';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const built = projects.filter((p) => p.area === 'bengali-native-computing');
+---
+<Base lang={lang} title={L('Project Ekushey', 'প্রকল্প একুশে')} description={L('Project Ekushey is a Bengali computing stack built from first principles, named after Ekushey February and the 1952 Language Movement.', 'প্রকল্প একুশে মৌলিক নীতি থেকে গড়ে তোলা একটি বাংলা কম্পিউটিং স্ট্যাক; নামকরণ একুশে ফেব্রুয়ারি ও ১৯৫২ সালের ভাষা আন্দোলনের স্মরণে।')}>
+  <PageHeader lang={lang} crumbs={[{ label: L('Project Ekushey', 'প্রকল্প একুশে') }]} eyebrow={L('The Bengali computing stack', 'বাংলা কম্পিউটিং স্ট্যাক')}
+    title={L('Project Ekushey', 'প্রকল্প একুশে')}
+    lead={L('Not a translation layer, not a keyboard wrapper, not a Bengali font on top of an English system. A computing stack designed in Bengali, from the instruction set up.', 'অনুবাদের স্তর নয়, কিবোর্ডের মোড়ক নয়, ইংরেজি ব্যবস্থার ওপর বাংলা ফন্টও নয়। নির্দেশনা-সেট থেকে শুরু করে বাংলায় নকশা করা একটি কম্পিউটিং স্ট্যাক।')} />
+
+  <Section id="name" title={L('The name', 'নাম')}>
+    <div class="prose measure">
+      <p class="lede" lang="bn">একুশে ফেব্রুয়ারি</p>
+      <p>{L(
+        'On 21 February 1952, people in Dhaka were killed while demonstrating for the right to use Bengali as a state language. The day, Ekushey February, became the centre of the Bengali Language Movement and is now observed worldwide as International Mother Language Day.',
+        '১৯৫২ সালের ২১ ফেব্রুয়ারি বাংলাকে রাষ্ট্রভাষা হিসেবে ব্যবহারের অধিকারের দাবিতে বিক্ষোভের সময় ঢাকায় মানুষ প্রাণ দেন। দিনটি, একুশে ফেব্রুয়ারি, ভাষা আন্দোলনের কেন্দ্রে পরিণত হয় এবং এখন সারা বিশ্বে আন্তর্জাতিক মাতৃভাষা দিবস হিসেবে পালিত হয়।'
+      )}</p>
+      <p>{L(
+        'The project carries that name because it starts from the same claim: language is not a convenience, it is a right. That holds for computers as much as for courts and schools.',
+        'প্রকল্পটি এই নাম বহন করে, কারণ এর শুরুও একই দাবি থেকে: ভাষা কোনো সুবিধা নয়, অধিকার। আদালত আর বিদ্যালয়ের মতো কম্পিউটারের ক্ষেত্রেও কথাটি সমান সত্য।'
+      )}</p>
+    </div>
+  </Section>
+
+  <Section id="origin" title={L('How it started', 'যেভাবে শুরু')}>
+    <div class="prose measure">
+      <p>{L(
+        'It began in Bogura with a plan to build a Bengali programming language. Building it on top of English tools, English keywords and English assumptions felt wrong: a Bengali language deserved more than a translation layer. So the work went deeper, past the compiler, past the assembler, past the instruction set, to the level where the machine first learns to speak. That is where Nirdeshika-16 was designed.',
+        'শুরুটা বগুড়ায়, একটি বাংলা প্রোগ্রামিং ভাষা তৈরির পরিকল্পনা থেকে। ইংরেজি টুল, ইংরেজি শব্দ আর ইংরেজি ধারণার ওপর তা দাঁড় করানো ঠিক মনে হয়নি: একটি বাংলা ভাষা অনুবাদের স্তরের চেয়ে বেশি কিছুর দাবিদার। তাই কাজ গেল আরও গভীরে, কম্পাইলার পেরিয়ে, অ্যাসেম্বলার পেরিয়ে, নির্দেশনা-সেট পেরিয়ে সেই স্তরে, যেখানে যন্ত্র প্রথম কথা বলতে শেখে। সেখানেই নকশা হলো নির্দেশিকা-১৬।'
+      )}</p>
+      <p>{L(
+        'The goal is not to make English computing accessible to Bengali speakers. It is to make Bengali computing exist: a computer on which a child in Bogura can write a program in her mother tongue without ever being told that computers speak a different language.',
+        'লক্ষ্য ইংরেজি কম্পিউটিংকে বাংলাভাষীদের নাগালে আনা নয়। লক্ষ্য বাংলা কম্পিউটিংকে অস্তিত্বে আনা: এমন একটি কম্পিউটার, যেখানে বগুড়ার একটি শিশু তার মাতৃভাষায় প্রোগ্রাম লিখতে পারবে, কখনো তাকে শুনতে হবে না যে কম্পিউটার অন্য ভাষায় কথা বলে।'
+      )}</p>
+    </div>
+  </Section>
+
+  <Section id="built" title={L('Built so far', 'এ পর্যন্ত তৈরি')} note={L('Public, and usable today.', 'উন্মুক্ত, আজই ব্যবহারযোগ্য।')}>
+    <ul class="rows">
+      {built.map((p) => <li><a class="nm" href={pathFor(lang, `/projects/${p.slug}/`)}>{p.name[lang]}</a><span class="meta">{p.kind[lang]} · {p.status[lang]}</span><p>{p.summary[lang]}</p></li>)}
+    </ul>
+  </Section>
+
+  <Section id="next" title={L('Still to build', 'যা বাকি')}>
+    <ul class="rows">
+      {plannedLayers.map((x) => <li><span class="nm">{x.name[lang]}</span><span class="meta">{x.layer[lang]} · {x.status[lang]}</span><p>{x.text[lang]}</p></li>)}
+    </ul>
+  </Section>
+
+  <Section id="try" title={L('Try it', 'চেষ্টা করে দেখুন')}>
+    <div class="prose measure">
+      <p>{L('Run a Bengali program in the ', 'একটি বাংলা প্রোগ্রাম চালান ')}<a href={pathFor(lang, '/projects/nirdeshika-16/playground/')}>{L('browser playground', 'ব্রাউজার খেলাঘরে')}</a>{L(', or install the ', ', অথবা ইনস্টল করুন ')}<a href={pathFor(lang, '/projects/nirdeshika-sdk/')}>{L('Nirdeshika SDK', 'নির্দেশিকা এসডিকে')}</a>{L(' and run ', ' এবং চালান ')}<code lang="bn">nirdeshika --compute প্রোগ্রাম.বয়ন</code>{L('.', '।')}</p>
+    </div>
+  </Section>
+</Base>
+<style>
+  .lede { font-family: var(--font-display-bn); font-size: var(--fs-6); line-height: 1.4; color: var(--ink); }
+  .rows { list-style: none; padding: 0; border-top: var(--hairline); }
+  .rows li { display: flex; flex-direction: column; gap: var(--s-1); padding-block: var(--s-4); border-bottom: var(--hairline); }
+  .rows p { max-width: var(--measure); }
+  .nm { font-family: var(--font-serif); font-weight: 600; font-size: var(--fs-4); line-height: 1.3; }
+</style>

@@ -1,0 +1,36 @@
+---
+/** Source to result, as the Nirdeshika SDK runs it. File names are real. */
+import type { Lang } from '../../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const steps = [
+  { kind: 'file', label: 'প্রোগ্রাম.বয়ন', note: L('Bengali assembly source', 'বাংলা অ্যাসেম্বলি সোর্স') },
+  { kind: 'tool', label: L('Boyon', 'বয়ন'), note: L('two-pass assembler', 'দুই ধাপের অ্যাসেম্বলার') },
+  { kind: 'file', label: 'প্রোগ্রাম.ব', note: L('16-bit machine code, little-endian', '১৬-বিট মেশিন কোড, লিটল-এন্ডিয়ান') },
+  { kind: 'tool', label: L('Shimu', 'শিমু'), note: L('fetch–decode–execute', 'আনা–বোঝা–চালানো চক্র') },
+  { kind: 'file', label: 'সিমুলেটর_ফলাফল.txt', note: L('report in Bengali and Akkhar-Hex', 'বাংলা ও অক্ষর-হেক্সে প্রতিবেদন') },
+];
+---
+<ol class="pipe" aria-label={L('Pipeline: a .বয়ন source file is assembled by Boyon into a .ব binary, which Shimu runs to produce a report', 'ধাপ: .বয়ন সোর্স ফাইল বয়ন দিয়ে .ব বাইনারিতে রূপান্তরিত হয়, শিমু সেটি চালিয়ে প্রতিবেদন তৈরি করে')}>
+  {steps.map((s) => (
+    <li class={s.kind}>
+      <span class="label" lang={s.kind === 'file' ? 'bn' : undefined}>{s.label}</span>
+      <span class="note">{s.note}</span>
+    </li>
+  ))}
+</ol>
+<style>
+  .pipe { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--s-5); counter-reset: s; }
+  li { position: relative; padding: var(--s-3); display: flex; flex-direction: column; gap: var(--s-1); }
+  li.file { border: 1px solid var(--rule); }
+  li.tool { border: 1px solid var(--ink); border-left: 4px solid var(--green); }
+  li + li::before { content: '→'; position: absolute; left: calc(-1 * var(--s-5)); width: var(--s-5); text-align: center; top: 50%; transform: translateY(-50%); color: var(--ink-2); font-family: var(--font-sans); }
+  .label { font-family: var(--font-mono); font-size: var(--fs-2); overflow-wrap: anywhere; }
+  li.tool .label { font-family: var(--font-serif); font-weight: 600; font-size: var(--fs-3); }
+  .note { font-family: var(--font-sans); font-size: var(--fs-1); color: var(--ink-2); }
+  @media (max-width: 959px) {
+    .pipe { grid-template-columns: 1fr; gap: var(--s-5); }
+    li + li::before { content: '↓'; left: 0; right: 0; width: auto; top: calc(-1 * var(--s-5)); transform: none; height: var(--s-5); line-height: var(--s-5); }
+  }
+</style>

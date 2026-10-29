@@ -1,0 +1,43 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Playground from '../components/Playground.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+import { site } from '../site.config';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const ld = {
+  '@context': 'https://schema.org', '@type': 'WebApplication', name: L('Nirdeshika-16 playground', 'নির্দেশিকা-১৬ খেলাঘর'),
+  applicationCategory: 'DeveloperApplication', operatingSystem: 'Any (web browser)', inLanguage: ['bn', 'en'],
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  url: new URL(pathFor(lang, '/projects/nirdeshika-16/playground/'), site.url).href, author: { '@id': `${site.url}/#org` },
+};
+---
+<Base lang={lang} title={L('Nirdeshika-16 playground', 'নির্দেশিকা-১৬ খেলাঘর')} description={L('Write Bengali assembly and run it in your browser. Boyon assembles it to Nirdeshika-16 machine code and Shimu executes it, with the output in Bengali and Akkhar-Hex.', 'বাংলায় অ্যাসেম্বলি লিখে ব্রাউজারেই চালান। বয়ন একে নির্দেশিকা-১৬ মেশিন কোডে রূপান্তর করে, শিমু তা চালায়; ফলাফল বাংলা ও অক্ষর-হেক্সে।')} jsonld={[ld]}>
+  <PageHeader lang={lang}
+    crumbs={[{ label: L('Projects', 'প্রকল্প'), href: '/projects/' }, { label: L('Nirdeshika-16', 'নির্দেশিকা-১৬'), href: '/projects/nirdeshika-16/' }, { label: L('Playground', 'খেলাঘর') }]}
+    eyebrow={L('Boyon and Shimu in the browser', 'ব্রাউজারে বয়ন ও শিমু')}
+    title={L('Nirdeshika-16 playground', 'নির্দেশিকা-১৬ খেলাঘর')}
+    lead={L('Write a Bengali program, assemble it and run it. Everything happens on your device.', 'একটি বাংলা প্রোগ্রাম লিখুন, অ্যাসেম্বল করুন, চালান। সবকিছু হয় আপনার যন্ত্রেই।')} />
+  <div class="container">
+    <Playground lang={lang} id="playground" />
+    <div class="notes prose">
+      <h2>{L('About this playground', 'এই খেলাঘর সম্পর্কে')}</h2>
+      <p>{L(
+        'The assembler and simulator here are a line-by-line JavaScript port of Boyon 1.0 and Shimu 1.0. The port was checked against binaries compiled from the C sources: the four example programs and 2,000 randomly generated programs all assemble to identical bytes, and all 1,069 of them that halt produce an identical Shimu report, character for character.',
+        'এখানকার অ্যাসেম্বলার ও সিমুলেটর বয়ন ১.০ ও শিমু ১.০-এর লাইন ধরে ধরে জাভাস্ক্রিপ্ট রূপান্তর। সি সোর্স থেকে কম্পাইল করা বাইনারির সঙ্গে রূপান্তরটি মিলিয়ে দেখা হয়েছে: চারটি উদাহরণ প্রোগ্রাম ও এলোমেলোভাবে তৈরি ২,০০০টি প্রোগ্রামের সবগুলো হুবহু একই বাইটে অ্যাসেম্বল হয়, এবং এর মধ্যে যে ১,০৬৯টি থামে, তার প্রতিটি অক্ষরে অক্ষরে একই শিমু-প্রতিবেদন তৈরি করে।'
+      )}</p>
+      <p>{L(
+        'One difference is deliberate: the browser stops after 100,000 instructions, because Shimu runs forever on a program that never reaches থামো. The tools follow their own opcode table, which differs from specification 1.0.0 in a few places; see the ',
+        'একটি পার্থক্য ইচ্ছাকৃত: ব্রাউজার ১,০০,০০০টি নির্দেশের পর থেমে যায়, কারণ যে প্রোগ্রাম কখনো থামো পর্যন্ত পৌঁছায় না, শিমু তা চিরকাল চালাতে থাকে। টুলগুলো নিজস্ব ওকোড-সারণি অনুসরণ করে, যা কয়েকটি জায়গায় বিবরণী ১.০.০ থেকে আলাদা; দেখুন '
+      )}<a href={pathFor(lang, '/projects/nirdeshika-16/#implementation')}>{L('implementation note', 'বাস্তবায়ন-টীকা')}</a>{L('.', '।')}</p>
+      <p class="meta">{L('Shortcut: Ctrl + Enter (⌘ + Enter on a Mac) assembles and runs.', 'শর্টকাট: Ctrl + Enter (ম্যাকে ⌘ + Enter) চাপলে অ্যাসেম্বল করে চলে।')}</p>
+    </div>
+  </div>
+</Base>
+<style>
+  .notes { max-width: var(--measure); padding-block: var(--s-7) var(--s-8); }
+  .notes h2 { font-size: var(--fs-4); }
+</style>

@@ -1,0 +1,47 @@
+---
+/** Breadcrumb, section label, title and lead, shared by every inner page. */
+import { pathFor, type Lang } from '../i18n/ui';
+import { site } from '../site.config';
+
+interface Crumb { label: string; href?: string }
+interface Props { lang: Lang; crumbs: Crumb[]; eyebrow?: string; title: string; lead?: string; titleLang?: string }
+const { lang, crumbs, eyebrow, title, lead, titleLang } = Astro.props;
+const home = { label: site.name[lang], href: '/' };
+const all = [home, ...crumbs];
+const ld = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: all.map((c, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: c.label,
+    item: new URL(pathFor(lang, c.href ?? Astro.url.pathname.replace(/^\/bn/, '') ), site.url).href,
+  })),
+};
+---
+<header class="page-header container">
+  <nav class="crumbs meta" aria-label={lang === 'bn' ? 'অবস্থান' : 'Breadcrumb'}>
+    <ol>
+      {all.map((c, i) => (
+        <li>{i < all.length - 1 && c.href ? <a href={pathFor(lang, c.href)}>{c.label}</a> : <span aria-current="page">{c.label}</span>}</li>
+      ))}
+    </ol>
+  </nav>
+  {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+  <h1 lang={titleLang}>{title}</h1>
+  {lead && <p class="lead">{lead}</p>}
+  <slot />
+  <script type="application/ld+json" set:html={JSON.stringify(ld)} />
+</header>
+
+<style>
+  .page-header { padding-block: var(--s-6) var(--s-6); }
+  .crumbs ol { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-2); }
+  .crumbs li + li::before { content: '/'; margin-right: var(--s-2); color: var(--rule); }
+  .crumbs a { color: var(--ink-2); }
+  .eyebrow { font-family: var(--font-sans); font-size: var(--fs-1); color: var(--ink-2); margin-top: var(--s-7); text-transform: none; }
+  h1 { margin-top: var(--s-2); max-width: 30ch; }
+  :global(:where([lang|="bn"])) h1 { max-width: 20em; }
+  .lead { font-size: var(--fs-4); line-height: 1.5; color: var(--ink-2); margin-top: var(--s-4); max-width: var(--measure); }
+  .page-header :global(.meta-row) { margin-top: var(--s-6); }
+</style>

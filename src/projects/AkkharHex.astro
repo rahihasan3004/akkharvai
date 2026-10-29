@@ -1,0 +1,153 @@
+---
+import ProjectLayout from '../layouts/ProjectLayout.astro';
+import { pathFor, num, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯', 'ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'];
+const examples = [
+  { ah: '০ষ২৮', dec: 40, src: L('Shimu output for 15 + 25', '১৫ + ২৫-এর জন্য শিমুর আউটপুট') },
+  { ah: '০ষগ', dec: 12, src: L('Shimu output for 4 × 3', '৪ × ৩-এর জন্য শিমুর আউটপুট') },
+  { ah: '০ষ৩২', dec: 50, src: L('Jump target, specification 4.12', 'লাফের ঠিকানা, বিবরণী ৪.১২') },
+  { ah: '০ষকখ', dec: 171, src: L('Store address, specification 4.3', 'জমা রাখার ঠিকানা, বিবরণী ৪.৩') },
+  { ah: '০ষচচ', dec: 255, src: L('Highest 8-bit address, specification 4.2', 'সর্বোচ্চ ৮-বিট ঠিকানা, বিবরণী ৪.২') },
+];
+const toc = [
+  { id: 'overview', label: L('Overview', 'সারকথা') },
+  { id: 'digits', label: L('The sixteen digits', 'ষোলোটি অঙ্ক') },
+  { id: 'prefixes', label: L('Prefixes', 'উপসর্গ') },
+  { id: 'examples', label: L('Examples', 'উদাহরণ') },
+  { id: 'convert', label: L('Convert a number', 'সংখ্যা রূপান্তর') },
+];
+---
+<ProjectLayout
+  lang={lang} slug="akkhar-hex" toc={toc} schemaType="TechArticle"
+  description={L(
+    'Akkhar-Hex writes hexadecimal with Bengali digits ০–৯ and the consonants ক খ গ ঘ ঙ চ for ten to fifteen. Prefixes: ০ষ for hexadecimal, ০ব for binary.',
+    'অক্ষর-হেক্স ষোড়শিক সংখ্যা লেখে বাংলা অঙ্ক ০–৯ এবং দশ থেকে পনেরোর জন্য ক খ গ ঘ ঙ চ ব্যঞ্জনবর্ণ দিয়ে। উপসর্গ: ষোড়শিকের জন্য ০ষ, বাইনারির জন্য ০ব।'
+  )}
+  extraMeta={[{ label: L('Defined in', 'সংজ্ঞায়িত'), value: L('Nirdeshika-16 specification 1.0.0', 'নির্দেশিকা-১৬ বিবরণী ১.০.০') }]}
+>
+  <h2 id="overview">{L('Overview', 'সারকথা')}</h2>
+  <p>{L(
+    'Hexadecimal is everywhere in low-level computing, and it is normally written with the Latin letters A to F. Akkhar-Hex replaces them with the first six Bengali consonants, so machine code, addresses and register dumps can be read with the Bengali alphabet alone. Boyon reads it, Shimu prints it, and the Nirdeshika-16 specification uses it throughout.',
+    'নিম্নস্তরের কম্পিউটিংয়ে ষোড়শিক সংখ্যা সর্বত্র, আর সাধারণত তা লেখা হয় লাতিন A থেকে F দিয়ে। অক্ষর-হেক্স এগুলোর জায়গায় প্রথম ছয়টি বাংলা ব্যঞ্জনবর্ণ ব্যবহার করে, যাতে মেশিন কোড, ঠিকানা ও সাময়িকের অবস্থা কেবল বাংলা বর্ণমালা দিয়েই পড়া যায়। বয়ন এটি পড়ে, শিমু এটি দেখায়, আর নির্দেশিকা-১৬ বিবরণীর সর্বত্র এটি ব্যবহৃত।'
+  )}</p>
+
+  <h2 id="digits">{L('The sixteen digits', 'ষোলোটি অঙ্ক')}</h2>
+  <div class="digits" role="table" aria-label={L('Akkhar-Hex digits with their values', 'অক্ষর-হেক্স অঙ্ক ও তাদের মান')}>
+    <div role="rowgroup">
+      {digits.map((d, i) => (
+        <div class:list={['cell', { letter: i >= 10 }]} role="row">
+          <span class="d" lang="bn" role="cell">{d}</span>
+          <span class="v" role="cell">{num(lang, i)}</span>
+          <span class="x" role="cell">{i.toString(16).toUpperCase()}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+  <p class="meta">{L('Each cell: Akkhar-Hex digit, its value, and the conventional hexadecimal digit.', 'প্রতিটি ঘরে: অক্ষর-হেক্স অঙ্ক, তার মান, এবং প্রচলিত ষোড়শিক অঙ্ক।')}</p>
+
+  <h2 id="prefixes">{L('Prefixes', 'উপসর্গ')}</h2>
+  <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+    <table>
+      <thead><tr><th scope="col">{L('Base', 'ভিত্তি')}</th><th scope="col">{L('Prefix', 'উপসর্গ')}</th><th scope="col">{L('Example', 'উদাহরণ')}</th><th scope="col">{L('Conventional', 'প্রচলিত')}</th></tr></thead>
+      <tbody>
+        <tr><td>{L('Binary', 'বাইনারি')}</td><td lang="bn" class="mono">০ব</td><td lang="bn" class="mono">০ব১০১০</td><td class="mono">0b1010</td></tr>
+        <tr><td>{L('Hexadecimal (ষোড়শিক)', 'ষোড়শিক')}</td><td lang="bn" class="mono">০ষ</td><td lang="bn" class="mono">০ষ৩২</td><td class="mono">0x32</td></tr>
+        <tr><td>{L('Decimal', 'দশমিক')}</td><td>{L('none', 'নেই')}</td><td lang="bn" class="mono">৫০</td><td class="mono">50</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>{L('The prefixes mirror the familiar 0b and 0x: a zero, then ব for বাইনারি or ষ for ষোড়শিক.', 'উপসর্গগুলো পরিচিত 0b ও 0x-এর মতোই: একটি শূন্য, তারপর বাইনারির জন্য ব বা ষোড়শিকের জন্য ষ।')}</p>
+
+  <h2 id="examples">{L('Examples', 'উদাহরণ')}</h2>
+  <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+    <table>
+      <thead><tr><th scope="col">{L('Akkhar-Hex', 'অক্ষর-হেক্স')}</th><th scope="col">{L('Decimal', 'দশমিক')}</th><th scope="col">{L('Where it appears', 'কোথায় পাওয়া যায়')}</th></tr></thead>
+      <tbody>{examples.map((e) => <tr><td lang="bn" class="mono">{e.ah}</td><td>{num(lang, e.dec)}</td><td>{e.src}</td></tr>)}</tbody>
+    </table>
+  </div>
+
+  <h2 id="convert">{L('Convert a number', 'সংখ্যা রূপান্তর')}</h2>
+  <form class="conv" data-converter data-lang={lang} onsubmit="return false">
+    <label for="conv-in">{L('Decimal, Bengali digits, 0x, ০ষ or ০ব', 'দশমিক, বাংলা অঙ্ক, 0x, ০ষ বা ০ব')}</label>
+    <input id="conv-in" lang="bn" inputmode="text" autocomplete="off" value="২৫৫" />
+    <p class="conv-err" data-err role="alert" hidden></p>
+    <dl class="conv-out" aria-live="polite">
+      <div><dt>{L('Decimal', 'দশমিক')}</dt><dd data-dec></dd></div>
+      <div><dt>{L('Bengali decimal', 'বাংলা দশমিক')}</dt><dd lang="bn" data-bdec></dd></div>
+      <div><dt>{L('Akkhar-Hex', 'অক্ষর-হেক্স')}</dt><dd lang="bn" data-ah></dd></div>
+      <div><dt>{L('Binary', 'বাইনারি')}</dt><dd lang="bn" data-bin></dd></div>
+      <div><dt>{L('Conventional hex', 'প্রচলিত হেক্স')}</dt><dd data-hex></dd></div>
+    </dl>
+  </form>
+  <p>{L('Values from 0 to 65,535 fit in one Nirdeshika-16 register. To see Akkhar-Hex in a running program, open the ', 'একটি নির্দেশিকা-১৬ সাময়িকে ০ থেকে ৬৫,৫৩৫ পর্যন্ত মান ধরে। চলমান প্রোগ্রামে অক্ষর-হেক্স দেখতে খুলুন ')}<a href={pathFor(lang, '/projects/nirdeshika-16/playground/')}>{L('playground', 'খেলাঘর')}</a>.</p>
+</ProjectLayout>
+
+<script>
+  const AH = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯', 'ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'];
+  const toBn = (s: string) => s.replace(/\d/g, (d) => AH[Number(d)]);
+  function parse(raw: string): number | null {
+    let s = raw.trim().replace(/[,\s]/g, '');
+    if (!s) return null;
+    const val = (str: string, base: number) => {
+      let n = 0;
+      for (const ch of str) {
+        let d = AH.indexOf(ch);
+        if (d < 0 && /[0-9]/.test(ch)) d = Number(ch);
+        if (d < 0 && /[a-f]/i.test(ch)) d = parseInt(ch, 16);
+        if (d < 0 || d >= base) return null;
+        n = n * base + d;
+      }
+      return n;
+    };
+    if (s.startsWith('০ষ')) return val(s.slice(2), 16);
+    if (s.startsWith('০ব')) return val(s.slice(2), 2);
+    if (/^0x/i.test(s)) return val(s.slice(2), 16);
+    if (/^0b/i.test(s)) return val(s.slice(2), 2);
+    return val(s, 10);
+  }
+  document.querySelectorAll<HTMLFormElement>('[data-converter]').forEach((f) => {
+    const lang = f.dataset.lang;
+    const input = f.querySelector('input')!;
+    const err = f.querySelector<HTMLElement>('[data-err]')!;
+    const set = (k: string, v: string) => { f.querySelector<HTMLElement>(`[data-${k}]`)!.textContent = v; };
+    const update = () => {
+      const n = parse(input.value);
+      if (n === null || n > 65535) {
+        err.textContent = lang === 'bn' ? '০ থেকে ৬৫,৫৩৫ পর্যন্ত একটি বৈধ সংখ্যা লিখুন।' : 'Enter a valid number from 0 to 65,535.';
+        err.hidden = false; return;
+      }
+      err.hidden = true;
+      set('dec', n.toLocaleString('en-US'));
+      set('bdec', toBn(n.toLocaleString('en-US')));
+      set('ah', '০ষ' + n.toString(16).split('').map((c) => AH[parseInt(c, 16)]).join(''));
+      set('bin', '০ব' + toBn(n.toString(2)));
+      set('hex', '0x' + n.toString(16).toUpperCase());
+    };
+    input.addEventListener('input', update);
+    update();
+  });
+</script>
+
+<style>
+  .digits > div { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); border-top: 1px solid var(--ink); border-left: var(--hairline); }
+  @media (max-width: 639px) { .digits > div { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .cell { display: flex; flex-direction: column; align-items: center; padding: var(--s-3) var(--s-1); border-right: var(--hairline); border-bottom: var(--hairline); }
+  .cell.letter { border-top: 2px solid var(--green); }
+  .d { font-size: var(--fs-5); line-height: 1.3; }
+  .v { font-family: var(--font-sans); font-size: var(--fs-2); }
+  .x { font-family: var(--font-mono); font-size: var(--fs-1); color: var(--ink-2); }
+  .mono { font-family: var(--font-mono); }
+  .table-wrap { overflow-x: auto; }
+  .conv { border-top: 1px solid var(--ink); border-bottom: var(--hairline); padding-block: var(--s-4); }
+  .conv label { display: block; font-family: var(--font-sans); font-size: var(--fs-1); color: var(--ink-2); margin-bottom: var(--s-2); }
+  .conv input { width: 100%; max-width: 20rem; font-family: var(--font-mono); font-size: var(--fs-4); padding: var(--s-2) var(--s-3); border: 1px solid var(--ink-2); border-radius: 0; background: var(--paper); color: var(--ink); }
+  .conv input:focus-visible { outline: 2px solid var(--focus); outline-offset: 0; }
+  .conv-err { font-family: var(--font-sans); font-size: var(--fs-2); border-left: 4px solid var(--red); padding-left: var(--s-3); margin-top: var(--s-2); }
+  .conv-out { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr)); gap: var(--s-3); margin-top: var(--s-4); }
+  .conv-out dt { font-family: var(--font-sans); font-size: var(--fs-1); color: var(--ink-2); }
+  .conv-out dd { font-family: var(--font-mono); font-size: var(--fs-3); overflow-wrap: anywhere; }
+</style>

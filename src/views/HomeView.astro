@@ -1,0 +1,158 @@
+---
+import Base from '../layouts/Base.astro';
+import Section from '../components/Section.astro';
+import StackFigure from '../components/figures/StackFigure.astro';
+import Playground from '../components/Playground.astro';
+import PubEntry from '../components/PubEntry.astro';
+import { t, pathFor, type Lang } from '../i18n/ui';
+import { areas, projects, publications, news, rahat, type AreaSlug } from '../data/lab';
+import { formatDate } from '../lib/format';
+import { site } from '../site.config';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const areaOrder: AreaSlug[] = ['bengali-native-computing', 'efficient-ai-infrastructure'];
+
+const jsonld = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ResearchOrganization',
+    '@id': `${site.url}/#org`,
+    name: 'Akkhar Labs',
+    alternateName: ['অক্ষর ল্যাবস', 'Akkhar-Labs'],
+    url: site.url,
+    logo: `${site.url}/icon-512.png`,
+    description: t('en', 'lab.description'),
+    slogan: t('bn', 'mission'),
+    foundingLocation: { '@type': 'Place', name: 'Bogura, Bangladesh' },
+    address: { '@type': 'PostalAddress', addressLocality: 'Bogura', addressCountry: 'BD' },
+    founder: { '@type': 'Person', '@id': `${site.url}/people/rahat-hasan/#person`, name: 'Rahat Hasan', sameAs: [`https://orcid.org/${rahat.orcid}`, rahat.github] },
+    knowsAbout: ['Instruction set architecture', 'Bengali computing', 'Assemblers', 'CPU simulation', 'LLM inference', 'KV-cache', 'Context management for AI agents'],
+    sameAs: ['https://github.com/akkhar-labs'],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${site.url}/#website`,
+    name: 'Akkhar Labs',
+    url: site.url,
+    inLanguage: ['en', 'bn'],
+    publisher: { '@id': `${site.url}/#org` },
+  },
+];
+---
+<Base lang={lang} description={t(lang, 'lab.description')} jsonld={jsonld}>
+  <div class="container hero">
+    <p class="mission-bn" lang="bn">{t('bn', 'mission')}</p>
+    {lang === 'en' ? <h1 class="mission-en">{t('en', 'mission')}</h1> : <h1 class="visually-hidden">{site.name.bn}: {t('bn', 'mission')}</h1>}
+    <div class="hero-foot">
+      <p class="description">{t(lang, 'lab.description')}</p>
+      <dl class="facts sans">
+        <div><dt>{L('Based in', 'অবস্থান')}</dt><dd>{site.location[lang]}</dd></div>
+        <div><dt>{L('Research areas', 'গবেষণার ক্ষেত্র')}</dt><dd>{L('2', '২')}</dd></div>
+        <div><dt>{L('Open specifications and papers', 'উন্মুক্ত বিবরণী ও গবেষণাপত্র')}</dt><dd>{L('3', '৩')}</dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <Section id="research" title={L('Research', 'গবেষণা')} note={L('Two programmes, one question: what changes when computing is designed around the language people actually use?', 'দুটি কর্মসূচি, একটি প্রশ্ন: মানুষ যে ভাষা আসলে ব্যবহার করে, তাকে ঘিরে কম্পিউটিং নকশা করলে কী বদলায়?')} link={{ href: pathFor(lang, '/research/'), label: L('All research', 'সব গবেষণা') }}>
+    <div class="areas">
+      {areaOrder.map((slug) => {
+        const a = areas[slug];
+        return (
+          <article class="area">
+            <p class="meta">{a.short[lang]}</p>
+            <h3><a href={pathFor(lang, `/research/${slug}/`)}>{a.title[lang]}</a></h3>
+            <p class="area-sum">{a.summary[lang]}</p>
+            <ul class="plist">
+              {projects.filter((p) => p.area === slug).map((p) => (
+                <li>
+                  <a href={pathFor(lang, `/projects/${p.slug}/`)}>{p.name[lang]}</a>
+                  <span class="meta">{p.kind[lang]} · {p.status[lang]}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        );
+      })}
+    </div>
+  </Section>
+
+  <Section id="stack" title={L('The Akkhar Stack', 'অক্ষর স্ট্যাক')} note={L('Each layer is designed in Bengali rather than translated from English. The bottom four are built and public; the rest are in design.', 'প্রতিটি স্তর ইংরেজি থেকে অনুবাদ নয়, বাংলাতেই নকশা করা। নিচের চারটি তৈরি ও উন্মুক্ত; বাকিগুলো নকশা পর্যায়ে।')} link={{ href: pathFor(lang, '/ekushey/'), label: L('About Project Ekushey', 'প্রকল্প একুশে সম্পর্কে') }}>
+    <StackFigure lang={lang} />
+  </Section>
+
+  <Section id="try" title={L('Run a Bengali program', 'একটি বাংলা প্রোগ্রাম চালান')} note={L('This is Boyon and Shimu running in your browser. Edit the program, then assemble and run it. Nothing is sent anywhere.', 'আপনার ব্রাউজারেই চলছে বয়ন ও শিমু। প্রোগ্রামটি বদলে অ্যাসেম্বল করে চালান। কোনো কিছু কোথাও পাঠানো হয় না।')}>
+    <Playground lang={lang} compact id="home-playground" />
+  </Section>
+
+  <Section id="publications" title={L('Publications', 'প্রকাশনা')} note={L('Open access. Papers are archived on Zenodo with DOIs; specifications are versioned on GitHub.', 'সবার জন্য উন্মুক্ত। গবেষণাপত্র ডিওআইসহ জেনোডোতে সংরক্ষিত; বিবরণীগুলো গিটহাবে সংস্করণসহ রাখা।')} link={{ href: pathFor(lang, '/publications/'), label: L('All publications', 'সব প্রকাশনা') }}>
+    <div class="pubs">
+      {publications.map((p) => (
+        <PubEntry
+          title={lang === 'bn' && p.titleBn ? p.titleBn : p.title}
+          href={pathFor(lang, `/publications/${p.slug}/`)}
+          authors={p.authors.map((a) => (lang === 'bn' && a.name === 'Rahat Hasan' ? 'রাহাত হাসান' : a.name)).join(', ')}
+          date={formatDate(lang, p.date)}
+          type={`${p.type[lang]}${p.peerReviewed ? '' : L(' · not peer-reviewed', ' · পিয়ার-রিভিউ হয়নি')}`}
+          doi={p.doi}
+        />
+      ))}
+    </div>
+  </Section>
+
+  <Section id="news" title={L('News', 'সংবাদ')} link={{ href: pathFor(lang, '/news/'), label: L('All news', 'সব সংবাদ') }}>
+    <ol class="log">
+      {news.slice(0, 4).map((n) => (
+        <li>
+          <time class="meta" datetime={n.date}>{formatDate(lang, n.date, n.precision)}</time>
+          <p>{n.href ? <a href={pathFor(lang, n.href)}>{n.text[lang]}</a> : n.text[lang]}</p>
+        </li>
+      ))}
+    </ol>
+  </Section>
+</Base>
+
+<style>
+  .hero { padding-block: var(--s-8) var(--s-7); }
+  .mission-bn {
+    font-family: var(--font-display-bn);
+    font-size: clamp(2rem, 5.2vw, 3.5rem);
+    line-height: 1.4;
+    max-width: 18em;
+    text-wrap: balance;
+  }
+  .mission-en { font-size: var(--fs-4); font-weight: 400; color: var(--ink-2); margin-top: var(--s-3); max-width: none; }
+  .hero-foot {
+    display: grid;
+    gap: var(--s-6) var(--gutter);
+    margin-top: var(--s-7);
+    padding-top: var(--s-5);
+    border-top: var(--hairline);
+  }
+  @media (min-width: 960px) { .hero-foot { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); } }
+  .description { font-size: var(--fs-4); line-height: 1.5; max-width: var(--measure); }
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-4); align-content: start; }
+  .facts div { border-left: var(--hairline); padding-left: var(--s-3); }
+  .facts dt { font-size: var(--fs-1); color: var(--ink-2); }
+  .facts dd { font-size: var(--fs-2); margin-top: var(--s-1); }
+
+  .areas { display: grid; gap: var(--s-7) var(--gutter); }
+  @media (min-width: 640px) { .areas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .area h3 { font-size: var(--fs-5); margin-top: var(--s-1); }
+  .area h3 a { color: var(--ink); text-decoration: none; }
+  .area h3 a:hover { color: var(--green); text-decoration: underline; text-decoration-thickness: 1px; }
+  .area-sum { margin-top: var(--s-3); }
+  .plist { list-style: none; padding: 0; margin-top: var(--s-5); border-top: var(--hairline); }
+  .plist li { display: flex; flex-direction: column; padding-block: var(--s-3); border-bottom: var(--hairline); }
+  .plist a { font-family: var(--font-serif); font-weight: 600; font-size: var(--fs-3); }
+
+  .pubs :global(.pub:first-child) { padding-top: 0; }
+
+  .log { list-style: none; padding: 0; }
+  .log li { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-1) var(--gutter); padding-block: var(--s-3); border-bottom: var(--hairline); }
+  .log li:first-child { padding-top: 0; }
+  @media (min-width: 640px) { .log li { grid-template-columns: 11rem minmax(0, 1fr); } }
+  .log time { padding-top: 0.2em; }
+</style>

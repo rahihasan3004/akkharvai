@@ -1,0 +1,84 @@
+---
+import ProjectLayout from '../layouts/ProjectLayout.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const copy = { copyLabel: L('Copy', 'কপি'), copiedLabel: L('Copied', 'কপি হয়েছে') };
+
+// Output of Shimu 1.0 (compiled from akkhar-labs/Shimu) running Boyon's examples/গণিত.বয়ন.
+const report = `--- নির্দেশিকা-১৬ সিমুলেশন রিপোর্ট ---
+আর্কিটেক্ট: রাহাত হাসান | অক্ষর ল্যাবস
+
+[আউটপুট] সাময়িক-১ এর বর্তমান মান: ৪০ (ষোড়শিক: ০ষ২৮)
+[আউটপুট] সাময়িক-১ এর বর্তমান মান: ১২ (ষোড়শিক: ০ষগ)
+
+সিস্টেম: প্রসেসর থামানো হয়েছে (থামো).
+
+সিস্টেম: এক্সিকিউশন সফলভাবে সম্পন্ন হয়েছে।
+
+--- রেজিস্টার অবস্থা (চূড়ান্ত অবস্থা) ---
+সাময়িক-০: ০ষ০   সাময়িক-১: ০ষগ   সাময়িক-২: ০ষ১৯   সাময়িক-৩: ০ষ০
+সাময়িক-৪: ০ষ০   সাময়িক-৫: ০ষ০   সাময়িক-৬: ০ষ০   সাময়িক-৭: ০ষ০
+সাময়িক-৮: ০ষ০   সাময়িক-৯: ০ষ০   সাময়িক-১০: ০ষ০   সাময়িক-১১: ০ষ০
+সাময়িক-১২: ০ষঙ   সাময়িক-১৩: ০ষ০   সাময়িক-১৪: ০ষ০   সাময়িক-১৫: ০ষ০
+---------------------------------------`;
+const build = `make
+./bin/shimu examples/গণিত.ব`;
+
+const toc = [
+  { id: 'overview', label: L('Overview', 'সারকথা') },
+  { id: 'cpu', label: L('The virtual CPU', 'ভার্চুয়াল সিপিইউ') },
+  { id: 'encoding', label: L('Reading a .ব file', '.ব ফাইল পড়া') },
+  { id: 'report', label: L('The report', 'প্রতিবেদন') },
+  { id: 'build', label: L('Build and run', 'বিল্ড ও চালানো') },
+];
+---
+<ProjectLayout
+  lang={lang} slug="shimu" toc={toc} schemaType="SoftwareSourceCode"
+  description={L(
+    'Shimu is the reference simulator for Nirdeshika-16: a virtual CPU in C99 with 64 KB of memory and 16 registers that runs .ব binaries and reports results in Bengali and Akkhar-Hex.',
+    'শিমু নির্দেশিকা-১৬-এর রেফারেন্স সিমুলেটর: সি৯৯-এ লেখা একটি ভার্চুয়াল সিপিইউ, যার ৬৪ কিলোবাইট মেমরি ও ১৬টি সাময়িক আছে; এটি .ব বাইনারি চালায় এবং ফলাফল বাংলা ও অক্ষর-হেক্সে জানায়।'
+  )}
+  extraMeta={[{ label: L('Memory', 'মেমরি'), value: L('64 KB, little-endian', '৬৪ কিলোবাইট, লিটল-এন্ডিয়ান') }]}
+>
+  <h2 id="overview">{L('Overview', 'সারকথা')}</h2>
+  <p>{L(
+    'Shimu is a virtual processor. It loads a raw .ব binary produced by Boyon into memory at address zero and runs it the way hardware would, one instruction at a time, until it reaches থামো. Every number it prints is in Bengali digits and Akkhar-Hex, so a reader needs neither English nor the Latin alphabet to follow it.',
+    'শিমু একটি ভার্চুয়াল প্রসেসর। এটি বয়নের তৈরি .ব বাইনারিকে মেমরির শূন্য ঠিকানা থেকে লোড করে এবং হার্ডওয়্যারের মতোই একটির পর একটি নির্দেশ চালায়, যতক্ষণ না থামো পৌঁছায়। এর দেখানো প্রতিটি সংখ্যা বাংলা অঙ্ক ও অক্ষর-হেক্সে; তাই পড়তে ইংরেজি বা লাতিন বর্ণমালা জানার দরকার হয় না।'
+  )}</p>
+
+  <h2 id="cpu">{L('The virtual CPU', 'ভার্চুয়াল সিপিইউ')}</h2>
+  <ul>
+    <li>{L('Sixteen 16-bit registers, S0 to S15. S0 is wired to zero: writes to it are ignored.', 'ষোলোটি ১৬-বিটের সাময়িক, S0 থেকে S15। S0 সবসময় শূন্য: এতে লেখা উপেক্ষা করা হয়।')}</li>
+    <li>{L('The program counter, stack pointer and status flags live in S12, S13 and S14.', 'প্রোগ্রাম কাউন্টার, স্ট্যাক পয়েন্টার ও অবস্থা-ফ্ল্যাগ থাকে S12, S13 ও S14-এ।')}</li>
+    <li>{L('65,536 bytes of memory, read and written as little-endian 16-bit words.', '৬৫,৫৩৬ বাইট মেমরি, যা লিটল-এন্ডিয়ান ১৬-বিট শব্দ হিসেবে পড়া ও লেখা হয়।')}</li>
+    <li>{L('Zero, overflow and negative flags, updated by arithmetic and logic instructions.', 'শূন্য, উপচয় ও ঋণাত্মক ফ্ল্যাগ, যা গাণিতিক ও যুক্তি-নির্দেশে হালনাগাদ হয়।')}</li>
+    <li>{L('Division by zero stops the machine with a Bengali error message rather than crashing.', 'শূন্য দিয়ে ভাগ করলে যন্ত্রটি ভেঙে না পড়ে বাংলা ত্রুটিবার্তা দিয়ে থেমে যায়।')}</li>
+  </ul>
+  <p>{L('Each cycle fetches a 16-bit word at the program counter, decodes the opcode (bits 15–12), register (11–8) and operand (7–0), executes it, and advances the counter by two unless the instruction jumped or halted.', 'প্রতিটি চক্রে প্রোগ্রাম কাউন্টারের ঠিকানা থেকে একটি ১৬-বিট শব্দ আনা হয়, ওকোড (বিট ১৫–১২), সাময়িক (১১–৮) ও উপাদান (৭–০) আলাদা করা হয়, নির্দেশটি চালানো হয়, এবং লাফ বা থামা না হলে কাউন্টার দুই ঘর এগোয়।')}</p>
+
+  <h2 id="encoding">{L('Reading a .ব file', '.ব ফাইল পড়া')}</h2>
+  <p>{L('A .ব file is bare machine code: no header, no metadata. Shimu’s documentation works through one instruction:', '.ব ফাইল কেবলই মেশিন কোড: কোনো হেডার বা মেটাডেটা নেই। শিমুর নথিতে একটি নির্দেশ ধরে ব্যাখ্যা করা হয়েছে:')}</p>
+  <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+    <table>
+      <tbody>
+        <tr><th scope="row">{L('Instruction', 'নির্দেশ')}</th><td><code lang="bn">আদান সাময়িক-১ ৪০</code></td></tr>
+        <tr><th scope="row">{L('Fields', 'ক্ষেত্র')}</th><td>{L('opcode 2, register 1, operand 40 (0x28)', 'ওকোড ২, সাময়িক ১, উপাদান ৪০ (০ষ২৮)')}</td></tr>
+        <tr><th scope="row">{L('Machine word', 'মেশিন শব্দ')}</th><td><code>0010 0001 0010 1000</code> = <code>0x2128</code></td></tr>
+        <tr><th scope="row">{L('Bytes in the file', 'ফাইলে বাইট')}</th><td><code>0x28 0x21</code> {L('(low byte first)', '(নিচের বাইট আগে)')}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="report">{L('The report', 'প্রতিবেদন')}</h2>
+  <p>{L('Shimu writes its results to সিমুলেটর_ফলাফল.txt: one line for each প্রদর্শন, a halt message, and the final state of all sixteen registers. This is the real output for Boyon’s গণিত.বয়ন example, which computes 15 + 25 and 4 × 3:', 'শিমু ফলাফল লেখে সিমুলেটর_ফলাফল.txt ফাইলে: প্রতিটি প্রদর্শনের জন্য একটি লাইন, থামার বার্তা, এবং ষোলোটি সাময়িকের চূড়ান্ত অবস্থা। এটি বয়নের গণিত.বয়ন উদাহরণের আসল আউটপুট, যা ১৫ + ২৫ এবং ৪ × ৩ হিসাব করে:')}</p>
+  <CodeBlock code={report} label="সিমুলেটর_ফলাফল.txt" {...copy} />
+
+  <h2 id="build">{L('Build and run', 'বিল্ড ও চালানো')}</h2>
+  <p>{L('Shimu needs a C99 compiler and make:', 'শিমুর জন্য একটি সি৯৯ কম্পাইলার ও make দরকার:')}</p>
+  <CodeBlock code={build} label={L('Terminal', 'টার্মিনাল')} {...copy} />
+  <p>{L('Or skip the build and ', 'অথবা বিল্ড না করেই ')}<a href={pathFor(lang, '/projects/nirdeshika-16/playground/')}>{L('run Shimu in your browser', 'আপনার ব্রাউজারে শিমু চালান')}</a>{L('. The browser version is a line-by-line port and produces the same report text.', '। ব্রাউজারের সংস্করণটি লাইন ধরে ধরে রূপান্তর, এবং হুবহু একই প্রতিবেদন তৈরি করে।')}</p>
+</ProjectLayout>

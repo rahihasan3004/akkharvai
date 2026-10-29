@@ -1,0 +1,49 @@
+---
+import { site } from '../site.config';
+import { t, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+---
+<footer class="site-footer">
+  <div class="container grid">
+    <div class="about">
+      <p class="name">{site.name[lang]}</p>
+      <p class="meta">{t(lang, 'mission')}</p>
+      <p class="meta">{site.location[lang]}</p>
+      {site.contactEmail && <p class="meta"><a href={`mailto:${site.contactEmail}`}>{site.contactEmail}</a></p>}
+    </div>
+    <div>
+      <h2 class="meta heading">{t(lang, 'footer.elsewhere')}</h2>
+      <ul class="links sans">
+        <li><a href={site.links.github}>GitHub</a></li>
+        <li><a href={site.links.orcid}>ORCID</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container">
+    <p class="meta copyright">{t(lang, 'footer.copyright')}</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: var(--hairline);
+    margin-top: var(--s-9);
+    padding-block: var(--s-7) var(--s-6);
+  }
+  .grid {
+    display: grid;
+    gap: var(--s-6);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 640px) {
+    .grid { grid-template-columns: 2fr 1fr; }
+  }
+  .name { font-weight: 600; font-size: var(--fs-4); margin-bottom: var(--s-2); }
+  .about p + p { margin-top: var(--s-1); }
+  .heading { font-weight: 500; margin-bottom: var(--s-2); }
+  .links { list-style: none; padding: 0; font-size: var(--fs-2); }
+  .links li + li { margin-top: var(--s-1); }
+  .copyright { margin-top: var(--s-6); padding-top: var(--s-4); border-top: var(--hairline); }
+</style>

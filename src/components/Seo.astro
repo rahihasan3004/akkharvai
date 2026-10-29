@@ -1,0 +1,51 @@
+---
+import { site } from '../site.config';
+import { basePath, pathFor, type Lang } from '../i18n/ui';
+
+interface Props {
+  /** Page title without the site suffix. Omit on the home page. */
+  title?: string;
+  description: string;
+  lang: Lang;
+  /** Force noindex (review pages). Every page is noindex until launch. */
+  noindex?: boolean;
+  ogType?: 'website' | 'article';
+  /** Extra schema.org objects for this page. */
+  jsonld?: object[];
+  /** Google Scholar meta tags (Highwire Press), e.g. { citation_title: '...', citation_author: ['...'] } */
+  scholar?: Record<string, string | string[]>;
+}
+
+const { title, description, lang, noindex = false, ogType = 'website', jsonld = [], scholar } = Astro.props;
+const name = site.name[lang];
+const tagline = lang === 'bn' ? 'বাংলা-ভিত্তিক কম্পিউটিং ও এআই অবকাঠামো গবেষণা' : 'Research in Bengali-native computing and AI infrastructure';
+const fullTitle = title ? `${title} — ${name}` : `${name} — ${tagline}`;
+const path = basePath(Astro.url);
+const canonical = new URL(pathFor(lang, path), site.url).href;
+const enUrl = new URL(pathFor('en', path), site.url).href;
+const bnUrl = new URL(pathFor('bn', path), site.url).href;
+const robots = noindex || !site.launched ? 'noindex, nofollow' : 'index, follow';
+const ogImage = new URL(`/og/${lang}${path === '/' ? '/index' : path.replace(/\/$/, '')}.png`, site.url).href;
+const scholarTags = Object.entries(scholar ?? {}).flatMap(([k, v]) => (Array.isArray(v) ? v : [v]).map((c) => ({ name: k, content: c })));
+---
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+<link rel="alternate" hreflang="en" href={enUrl} />
+<link rel="alternate" hreflang="bn" href={bnUrl} />
+<link rel="alternate" hreflang="x-default" href={enUrl} />
+<meta name="robots" content={robots} />
+<meta property="og:site_name" content={name} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:type" content={ogType} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:locale" content={lang === 'bn' ? 'bn_BD' : 'en_US'} />
+<meta property="og:locale:alternate" content={lang === 'bn' ? 'en_US' : 'bn_BD'} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content={ogImage} />
+{scholarTags.map((t) => <meta name={t.name} content={t.content} />)}
+{jsonld.map((o) => <script type="application/ld+json" set:html={JSON.stringify(o)} />)}

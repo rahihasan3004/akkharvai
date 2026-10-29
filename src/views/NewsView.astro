@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+import { news } from '../data/lab';
+import { formatDate } from '../lib/format';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+---
+<Base lang={lang} title={L('News', 'সংবাদ')} description={L('Dated record of Akkhar Labs releases and publications, newest first.', 'অক্ষর ল্যাবসের প্রকাশ ও প্রকাশনার তারিখভিত্তিক তালিকা, নতুনটি আগে।')}>
+  <PageHeader lang={lang} crumbs={[{ label: L('News', 'সংবাদ') }]} title={L('News', 'সংবাদ')} lead={L('Releases and publications, newest first. Where only the month is certain, only the month is given.', 'প্রকাশ ও প্রকাশনা, নতুনটি আগে। যেখানে শুধু মাস নিশ্চিত, সেখানে শুধু মাসই দেওয়া হয়েছে।')}>
+    <p class="sans rss"><a href={pathFor(lang, '/news/rss.xml')}>{L('RSS feed', 'আরএসএস ফিড')}</a></p>
+  </PageHeader>
+  <div class="container">
+    <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+      <table class="log">
+        <caption class="visually-hidden">{L('News, newest first', 'সংবাদ, নতুনটি আগে')}</caption>
+        <thead><tr><th scope="col">{L('Date', 'তারিখ')}</th><th scope="col">{L('What happened', 'কী হয়েছে')}</th></tr></thead>
+        <tbody>
+          {news.map((n) => (
+            <tr>
+              <td class="d"><time datetime={n.precision === 'month' ? n.date.slice(0, 7) : n.date}>{formatDate(lang, n.date, n.precision)}</time></td>
+              <td>{n.href ? <a href={pathFor(lang, n.href)}>{n.text[lang]}</a> : n.text[lang]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</Base>
+<style>
+  .rss { margin-top: var(--s-4); font-size: var(--fs-2); }
+  .log { font-family: var(--font-serif); font-size: var(--fs-3); margin-bottom: var(--s-8); }
+  .log td { padding-block: var(--s-4); }
+  .d { font-family: var(--font-sans); font-size: var(--fs-2); color: var(--ink-2); white-space: nowrap; width: 12rem; }
+  .table-wrap { overflow-x: auto; }
+</style>

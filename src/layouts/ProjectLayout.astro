@@ -1,0 +1,119 @@
+---
+import Base from './Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import MetaRow from '../components/MetaRow.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+import { areas, project, projects, publications, type ProjectSlug } from '../data/lab';
+import { formatDate } from '../lib/format';
+import { site } from '../site.config';
+
+interface Props {
+  lang: Lang;
+  slug: ProjectSlug;
+  /** Meta description for search results. */
+  description: string;
+  toc: { id: string; label: string }[];
+  extraMeta?: { label: string; value: string; href?: string; lang?: string }[];
+  schemaType?: 'SoftwareSourceCode' | 'SoftwareApplication' | 'TechArticle' | 'CreativeWork';
+}
+const { lang, slug, description, toc, extraMeta = [], schemaType = 'CreativeWork' } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const p = project(slug);
+const area = areas[p.area];
+const meta = [
+  { label: L('Status', 'অবস্থা'), value: p.status[lang] },
+  ...(p.license ? [{ label: L('Licence', 'লাইসেন্স'), value: p.license, lang: 'en' }] : []),
+  ...(p.language ? [{ label: L('Written in', 'লেখার ভাষা'), value: p.language === 'Bengali' ? L('Bengali', 'বাংলা') : p.language }] : []),
+  ...extraMeta,
+  ...(p.repo ? [{ label: L('Repository', 'রিপোজিটরি'), value: p.repo.replace('https://github.com/', ''), href: p.repo, lang: 'en' }] : []),
+];
+const pubs = publications.filter((x) => x.project === slug);
+const siblings = projects.filter((x) => x.area === p.area && x.slug !== slug);
+const url = new URL(pathFor(lang, `/projects/${slug}/`), site.url).href;
+const ld: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': schemaType,
+  name: p.name.en,
+  alternateName: p.name.bn !== p.name.en ? p.name.bn : undefined,
+  description: p.summary.en,
+  url,
+  inLanguage: lang,
+  author: { '@type': 'Person', '@id': `${site.url}/people/rahat-hasan/#person`, name: 'Rahat Hasan' },
+  publisher: { '@id': `${site.url}/#org` },
+};
+if (p.repo && schemaType.startsWith('Software')) ld.codeRepository = p.repo;
+if (p.language && schemaType === 'SoftwareSourceCode') ld.programmingLanguage = p.language;
+if (p.license) ld.license = p.license;
+---
+<Base lang={lang} title={`${p.name[lang]}: ${p.kind[lang]}`} description={description} jsonld={[ld]} ogType="article">
+  <PageHeader
+    lang={lang}
+    crumbs={[{ label: L('Projects', 'প্রকল্প'), href: '/projects/' }, { label: p.name[lang] }]}
+    eyebrow={`${p.kind[lang]} · ${area.title[lang]}`}
+    title={p.name[lang]}
+    lead={p.summary[lang]}
+  >
+    <MetaRow items={meta} label={L('Project facts', 'প্রকল্পের তথ্য')} />
+  </PageHeader>
+
+  <div class="container body-grid">
+    <nav class="toc sans" aria-label={L('On this page', 'এই পাতায়')}>
+      <p class="meta">{L('On this page', 'এই পাতায়')}</p>
+      <ol>{toc.map((x) => <li><a href={`#${x.id}`}>{x.label}</a></li>)}</ol>
+    </nav>
+    <article class="prose body">
+      <slot />
+    </article>
+  </div>
+
+  <aside class="container related" aria-labelledby="related-h">
+    <h2 id="related-h">{L('Related', 'সম্পর্কিত')}</h2>
+    <div class="rel-grid">
+      {pubs.length > 0 && (
+        <div>
+          <h3 class="meta">{L('Publications', 'প্রকাশনা')}</h3>
+          <ul>
+            {pubs.map((x) => (
+              <li><a href={pathFor(lang, `/publications/${x.slug}/`)} lang={x.titleBn && lang === 'bn' ? 'bn' : 'en'}>{lang === 'bn' && x.titleBn ? x.titleBn : x.title}</a><span class="meta">{formatDate(lang, x.date)} · {x.type[lang]}</span></li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div>
+        <h3 class="meta">{L('Other work in', 'এই ক্ষেত্রের অন্যান্য কাজ:')} {area.title[lang]}</h3>
+        <ul>
+          {siblings.map((x) => (
+            <li><a href={pathFor(lang, `/projects/${x.slug}/`)}>{x.name[lang]}</a><span class="meta">{x.kind[lang]}</span></li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h3 class="meta">{L('Research area', 'গবেষণার ক্ষেত্র')}</h3>
+        <ul><li><a href={pathFor(lang, `/research/${p.area}/`)}>{area.title[lang]}</a><span class="meta">{area.short[lang]}</span></li></ul>
+      </div>
+    </div>
+  </aside>
+</Base>
+
+<style>
+  .body-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-6) var(--gutter); padding-bottom: var(--s-7); }
+  @media (min-width: 960px) {
+    .body-grid { grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); }
+    .toc { position: sticky; top: var(--s-5); align-self: start; }
+  }
+  .toc ol { list-style: none; padding: 0; margin-top: var(--s-2); border-left: var(--hairline); }
+  .toc li a { display: block; padding: var(--s-1) var(--s-3); font-size: var(--fs-1); color: var(--ink-2); text-decoration: none; }
+  .toc li a:hover { color: var(--green); text-decoration: underline; }
+  .body { max-width: var(--measure); }
+  .body :global(.wide) { max-width: none; width: min(100%, 52rem); }
+  .body :global(h2) { font-size: var(--fs-5); scroll-margin-top: var(--s-5); }
+  .body :global(h3) { font-size: var(--fs-4); }
+  .body > :global(h2:first-child) { margin-top: 0; }
+  .related { border-top: 1px solid var(--ink); padding-block: var(--s-6); }
+  .related h2 { font-size: var(--fs-4); }
+  .rel-grid { display: grid; gap: var(--s-5) var(--gutter); margin-top: var(--s-4); }
+  @media (min-width: 640px) { .rel-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .rel-grid h3 { font-weight: 500; margin-bottom: var(--s-2); }
+  .rel-grid ul { list-style: none; padding: 0; }
+  .rel-grid li { display: flex; flex-direction: column; padding-block: var(--s-2); border-top: var(--hairline); }
+</style>

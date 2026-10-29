@@ -1,0 +1,64 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+import { projects, areas, plannedLayers, type AreaSlug } from '../data/lab';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const order: AreaSlug[] = ['bengali-native-computing', 'efficient-ai-infrastructure'];
+---
+<Base lang={lang} title={L('Projects', 'প্রকল্প')} description={L('Nirdeshika-16, Boyon, Shimu, the Nirdeshika SDK, Akkhar-Hex, ZRCP and HashedContext: every Akkhar Labs project with its status, licence and source.', 'নির্দেশিকা-১৬, বয়ন, শিমু, নির্দেশিকা এসডিকে, অক্ষর-হেক্স, ZRCP ও HashedContext: অক্ষর ল্যাবসের প্রতিটি প্রকল্প, অবস্থা, লাইসেন্স ও সোর্সসহ।')}>
+  <PageHeader lang={lang} crumbs={[{ label: L('Projects', 'প্রকল্প') }]} title={L('Projects', 'প্রকল্প')}
+    lead={L('Seven projects are built and public. Each has its own page with the technical detail, status and source.', 'সাতটি প্রকল্প তৈরি ও উন্মুক্ত। প্রতিটির নিজস্ব পাতায় কারিগরি বিবরণ, অবস্থা ও সোর্স আছে।')} />
+  <div class="container">
+    {order.map((a) => (
+      <section class="group" aria-labelledby={`g-${a}`}>
+        <div class="gh">
+          <h2 id={`g-${a}`}><a href={pathFor(lang, `/research/${a}/`)}>{areas[a].title[lang]}</a></h2>
+          <p class="meta">{areas[a].short[lang]}</p>
+        </div>
+        <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+          <table>
+            <thead><tr><th scope="col">{L('Project', 'প্রকল্প')}</th><th scope="col">{L('What it is', 'কী')}</th><th scope="col">{L('Status', 'অবস্থা')}</th><th scope="col">{L('Licence', 'লাইসেন্স')}</th></tr></thead>
+            <tbody>
+              {projects.filter((p) => p.area === a).map((p) => (
+                <tr>
+                  <th scope="row"><a href={pathFor(lang, `/projects/${p.slug}/`)}>{p.name[lang]}</a><span class="kind">{p.kind[lang]}</span></th>
+                  <td class="sum">{p.summary[lang]}</td>
+                  <td>{p.status[lang]}</td>
+                  <td>{p.license ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    ))}
+    <section class="group" aria-labelledby="g-planned">
+      <div class="gh">
+        <h2 id="g-planned">{L('Planned', 'পরিকল্পিত')}</h2>
+        <p class="meta">{L('Not yet public. Listed so the direction is clear.', 'এখনো উন্মুক্ত নয়। দিকনির্দেশনা স্পষ্ট রাখতে তালিকাভুক্ত।')}</p>
+      </div>
+      <ul class="planned">
+        {plannedLayers.map((x) => <li><strong>{x.name[lang]}</strong> <span class="meta">{x.layer[lang]} · {x.status[lang]}</span></li>)}
+        <li><strong>{L('Akkhar-Druti-1', 'অক্ষর-দ্রুতি-১')}</strong> <span class="meta">{L('Bengali-first AI model · in research', 'বাংলা-প্রথম এআই মডেল · গবেষণা পর্যায়ে')}</span></li>
+      </ul>
+    </section>
+  </div>
+</Base>
+<style>
+  .group { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4) var(--gutter); border-top: 1px solid var(--ink); padding-block: var(--s-5) var(--s-7); }
+  @media (min-width: 960px) { .group { grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); } }
+  .gh h2 { font-size: var(--fs-4); }
+  .gh h2 a { color: var(--ink); text-decoration: none; }
+  .gh h2 a:hover { color: var(--green); text-decoration: underline; }
+  .table-wrap { overflow-x: auto; }
+  tbody th { font-family: var(--font-serif); font-size: var(--fs-3); font-weight: 600; min-width: 9rem; }
+  .kind { display: block; font-family: var(--font-sans); font-size: var(--fs-1); font-weight: 400; color: var(--ink-2); }
+  .sum { font-size: var(--fs-2); min-width: 16rem; }
+  .planned { list-style: none; padding: 0; }
+  .planned li { padding-block: var(--s-2); border-bottom: var(--hairline); display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-3); align-items: baseline; }
+  .planned strong { font-weight: 600; }
+</style>

@@ -1,0 +1,104 @@
+---
+import ProjectLayout from '../layouts/ProjectLayout.astro';
+import Figure from '../components/figures/Figure.astro';
+import Pipeline from '../components/figures/Pipeline.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const copy = { copyLabel: L('Copy', 'কপি'), copiedLabel: L('Copied', 'কপি হয়েছে') };
+
+const apt = `echo "deb [trusted=yes] https://akkhar-labs.github.io/apt-repo/ stable main" | sudo tee /etc/apt/sources.list.d/nirdeshika.list
+sudo apt-get update
+sudo apt-get install nirdeshika-sdk`;
+const deb = `sudo dpkg -i nirdeshika-sdk_1.0.0_amd64.deb`;
+const source = `git clone https://github.com/akkhar-labs/nirdeshika-sdk.git
+cd nirdeshika-sdk
+mkdir build && cd build
+cmake ..
+make`;
+const usage = `nirdeshika --compute program.বয়ন   # assemble, simulate, open the result
+nirdeshika -c program.বয়ন          # short form
+nirdeshika --version
+nirdeshika --help`;
+
+const toc = [
+  { id: 'overview', label: L('Overview', 'সারকথা') },
+  { id: 'install', label: L('Install', 'ইনস্টল') },
+  { id: 'use', label: L('Use', 'ব্যবহার') },
+  { id: 'languages', label: L('Which language where', 'কোথায় কোন ভাষা') },
+  { id: 'package', label: L('Package details', 'প্যাকেজের তথ্য') },
+];
+---
+<ProjectLayout
+  lang={lang} slug="nirdeshika-sdk" toc={toc} schemaType="SoftwareApplication"
+  description={L(
+    'The Nirdeshika SDK runs the whole Bengali assembly pipeline with one command: install from the Akkhar Labs APT repository, then run nirdeshika --compute program.বয়ন.',
+    'নির্দেশিকা এসডিকে একটি কমান্ডেই পুরো বাংলা অ্যাসেম্বলি প্রক্রিয়া চালায়: অক্ষর ল্যাবসের এপিটি রিপোজিটরি থেকে ইনস্টল করে চালান nirdeshika --compute program.বয়ন।'
+  )}
+  extraMeta={[
+    { label: L('Version', 'সংস্করণ'), value: '1.0.0', lang: 'en' },
+    { label: L('Platforms', 'প্ল্যাটফর্ম'), value: L('Linux, macOS, Windows via WSL', 'লিনাক্স, ম্যাকওএস, ডব্লিউএসএল-এর মাধ্যমে উইন্ডোজ') },
+  ]}
+>
+  <h2 id="overview">{L('Overview', 'সারকথা')}</h2>
+  <p>{L(
+    'Instead of installing Boyon and Shimu separately and chaining them by hand, the SDK does it in one step. It checks that both tools are present and builds them from source if they are missing, assembles your .বয়ন file, runs the binary on Shimu, saves সিমুলেটর_ফলাফল.txt and opens it in your text editor.',
+    'বয়ন ও শিমু আলাদাভাবে ইনস্টল করে হাতে জুড়ে দেওয়ার বদলে এসডিকে এক ধাপেই কাজটি করে। এটি দেখে নেয় দুটি টুল আছে কি না, না থাকলে সোর্স থেকে বিল্ড করে, আপনার .বয়ন ফাইল অ্যাসেম্বল করে, বাইনারিটি শিমুতে চালায়, সিমুলেটর_ফলাফল.txt সংরক্ষণ করে এবং আপনার টেক্সট এডিটরে খুলে দেয়।'
+  )}</p>
+  <Figure wide caption={L('Figure 1. The pipeline the SDK runs.', 'চিত্র ১. এসডিকে যে ধাপগুলো চালায়।')}>
+    <Pipeline lang={lang} />
+  </Figure>
+
+  <h2 id="install">{L('Install', 'ইনস্টল')}</h2>
+  <h3>{L('From the APT repository (Debian and Ubuntu, amd64)', 'এপিটি রিপোজিটরি থেকে (ডেবিয়ান ও উবুন্টু, amd64)')}</h3>
+  <CodeBlock code={apt} label={L('Terminal', 'টার্মিনাল')} {...copy} />
+  <p class="note">{L(
+    'The repository is not yet signed with a GPG key, which is why the source line carries [trusted=yes]. Check the package checksum below if that matters for your machine.',
+    'রিপোজিটরিটি এখনো জিপিজি কি দিয়ে স্বাক্ষরিত নয়, তাই সোর্স লাইনে [trusted=yes] আছে। আপনার যন্ত্রের জন্য বিষয়টি গুরুত্বপূর্ণ হলে নিচের প্যাকেজ চেকসাম মিলিয়ে নিন।'
+  )}</p>
+  <h3>{L('From the .deb package', '.deb প্যাকেজ থেকে')}</h3>
+  <CodeBlock code={deb} label={L('Terminal', 'টার্মিনাল')} {...copy} />
+  <h3>{L('From source', 'সোর্স থেকে')}</h3>
+  <p>{L('Needs CMake 3.10 or later, a C11 compiler and make. On first run the binary copies itself to ~/.local/bin and adds it to your PATH.', 'প্রয়োজন সিমেক ৩.১০ বা নতুনতর, একটি সি১১ কম্পাইলার ও make। প্রথমবার চালালে বাইনারিটি নিজেকে ~/.local/bin-এ কপি করে এবং PATH-এ যোগ করে।')}</p>
+  <CodeBlock code={source} label={L('Terminal', 'টার্মিনাল')} {...copy} />
+
+  <h2 id="use">{L('Use', 'ব্যবহার')}</h2>
+  <CodeBlock code={usage} label={L('Terminal', 'টার্মিনাল')} {...copy} />
+
+  <h2 id="languages">{L('Which language where', 'কোথায় কোন ভাষা')}</h2>
+  <p>{L('Terminals do not reliably render Bengali, so the SDK speaks English on the command line and keeps everything you write and read in Bengali.', 'টার্মিনাল সবসময় বাংলা ঠিকমতো দেখাতে পারে না, তাই এসডিকে কমান্ড লাইনে ইংরেজি ব্যবহার করে, কিন্তু আপনি যা লেখেন ও পড়েন সবই বাংলায় রাখে।')}</p>
+  <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+    <table>
+      <thead><tr><th scope="col">{L('Part', 'অংশ')}</th><th scope="col">{L('Language', 'ভাষা')}</th></tr></thead>
+      <tbody>
+        <tr><td>{L('Prompts, progress and errors', 'প্রম্পট, অগ্রগতি ও ত্রুটি')}</td><td>{L('English', 'ইংরেজি')}</td></tr>
+        <tr><td>{L('Source files', 'সোর্স ফাইল')} (<span lang="bn">.বয়ন</span>)</td><td>{L('Bengali', 'বাংলা')}</td></tr>
+        <tr><td>{L('Assembled output', 'অ্যাসেম্বল করা আউটপুট')} (<span lang="bn">.ব</span>)</td><td>{L('Bengali file name, binary content', 'বাংলা ফাইলনাম, বাইনারি বিষয়বস্তু')}</td></tr>
+        <tr><td>{L('Results', 'ফলাফল')} (<span lang="bn">সিমুলেটর_ফলাফল.txt</span>)</td><td>{L('Bengali', 'বাংলা')}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="package">{L('Package details', 'প্যাকেজের তথ্য')}</h2>
+  <div class="table-wrap" tabindex="0" role="region" aria-label={L("Scrollable table", "সারণি")}>
+    <table class="pkg">
+      <tbody>
+        <tr><th scope="row">{L('Package', 'প্যাকেজ')}</th><td><code>nirdeshika-sdk</code></td></tr>
+        <tr><th scope="row">{L('Version', 'সংস্করণ')}</th><td><code>1.0.0</code></td></tr>
+        <tr><th scope="row">{L('Architecture', 'আর্কিটেকচার')}</th><td><code>amd64</code></td></tr>
+        <tr><th scope="row">{L('Depends on', 'নির্ভরতা')}</th><td><code>libc6</code></td></tr>
+        <tr><th scope="row">{L('Installs', 'যেখানে বসে')}</th><td><code>/usr/bin/nirdeshika</code></td></tr>
+        <tr><th scope="row">SHA-256</th><td><code class="hash">c5254b3adabc4d0ca1588954b6f62b43bf8fefc4dce438ed07c636dbda0c49bc</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</ProjectLayout>
+
+<style>
+  .note { font-family: var(--font-sans); font-size: var(--fs-2); color: var(--ink-2); border-left: 2px solid var(--rule); padding-left: var(--s-4); }
+  .table-wrap { overflow-x: auto; }
+  .hash { overflow-wrap: anywhere; word-break: break-all; }
+</style>

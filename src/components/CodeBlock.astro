@@ -1,0 +1,35 @@
+---
+/** Preformatted code with a copy button. The button only appears when JavaScript runs. */
+interface Props { code: string; label: string; copyLabel: string; copiedLabel: string; wrap?: boolean }
+const { code, label, copyLabel, copiedLabel, wrap = false } = Astro.props;
+---
+<figure class="code">
+  <figcaption class="meta"><span>{label}</span><button type="button" class="copy" hidden data-copied={copiedLabel}>{copyLabel}</button></figcaption>
+  <pre tabindex="0" aria-label={label} class:list={{ wrap }}><code>{code}</code></pre>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('figure.code .copy').forEach((btn) => {
+    btn.hidden = false;
+    const original = btn.textContent;
+    btn.addEventListener('click', async () => {
+      const text = btn.closest('figure')?.querySelector('code')?.textContent ?? '';
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = btn.dataset.copied ?? original;
+        setTimeout(() => (btn.textContent = original), 2000);
+      } catch { /* clipboard unavailable: the text is still selectable */ }
+    });
+  });
+</script>
+
+<style>
+  figcaption {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: var(--s-2);
+  }
+  pre { margin: 0; }
+  pre.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>

@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+import { projects, areas, publications, type AreaSlug } from '../data/lab';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const order: AreaSlug[] = ['bengali-native-computing', 'efficient-ai-infrastructure'];
+---
+<Base lang={lang} title={L('Research', 'গবেষণা')} description={L('Akkhar Labs works in two areas: Bengali-native computing, from instruction set to operating system, and efficient context management for AI coding agents.', 'অক্ষর ল্যাবস দুটি ক্ষেত্রে কাজ করে: নির্দেশনা-সেট থেকে অপারেটিং সিস্টেম পর্যন্ত বাংলা-ভিত্তিক কম্পিউটিং, এবং এআই কোডিং এজেন্টের জন্য দক্ষ কনটেক্সট ব্যবস্থাপনা।')}>
+  <PageHeader lang={lang} crumbs={[{ label: L('Research', 'গবেষণা') }]} title={L('Research', 'গবেষণা')}
+    lead={L('Two areas of work. Both start from the same observation: most of computing assumes one language and one way of passing information, and a lot is lost to that assumption.', 'কাজের দুটি ক্ষেত্র। দুটিরই শুরু একই পর্যবেক্ষণ থেকে: কম্পিউটিংয়ের বেশিরভাগই একটি ভাষা আর তথ্য আদান-প্রদানের একটি পদ্ধতি ধরে নেয়, আর সেই ধারণার কারণে অনেক কিছু হারায়।')} />
+  <div class="container">
+    {order.map((a, i) => (
+      <section class="area" aria-labelledby={`a-${a}`}>
+        <p class="n meta">{L(`Area ${i + 1}`, `ক্ষেত্র ${['১', '২'][i]}`)} · {areas[a].short[lang]}</p>
+        <div class="grid">
+          <div>
+            <h2 id={`a-${a}`}><a href={pathFor(lang, `/research/${a}/`)}>{areas[a].title[lang]}</a></h2>
+            <p class="sum">{areas[a].summary[lang]}</p>
+            <p class="sans more"><a href={pathFor(lang, `/research/${a}/`)}>{L('Read about this area', 'এই ক্ষেত্র সম্পর্কে পড়ুন')}</a></p>
+          </div>
+          <div>
+            <h3 class="meta">{L('Projects', 'প্রকল্প')}</h3>
+            <ul>{projects.filter((p) => p.area === a).map((p) => <li><a href={pathFor(lang, `/projects/${p.slug}/`)}>{p.name[lang]}</a> <span class="meta">{p.kind[lang]}</span></li>)}</ul>
+            <h3 class="meta">{L('Publications', 'প্রকাশনা')}</h3>
+            <ul>{publications.filter((p) => p.area === a).map((p) => <li><a href={pathFor(lang, `/publications/${p.slug}/`)} lang={lang === 'bn' && p.titleBn ? 'bn' : 'en'}>{lang === 'bn' && p.titleBn ? p.titleBn : p.title}</a></li>)}</ul>
+          </div>
+        </div>
+      </section>
+    ))}
+  </div>
+</Base>
+<style>
+  .area { border-top: 1px solid var(--ink); padding-block: var(--s-5) var(--s-8); }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-6) var(--gutter); margin-top: var(--s-3); }
+  @media (min-width: 960px) { .grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); } }
+  h2 { font-size: var(--fs-6); }
+  h2 a { color: var(--ink); text-decoration: none; }
+  h2 a:hover { color: var(--green); text-decoration: underline; text-decoration-thickness: 2px; }
+  .sum { font-size: var(--fs-4); line-height: 1.5; margin-top: var(--s-4); max-width: var(--measure); }
+  .more { margin-top: var(--s-4); font-size: var(--fs-2); }
+  h3 { font-weight: 500; margin-bottom: var(--s-2); }
+  h3:not(:first-child) { margin-top: var(--s-5); }
+  ul { list-style: none; padding: 0; border-top: var(--hairline); }
+  li { padding-block: var(--s-2); border-bottom: var(--hairline); }
+</style>

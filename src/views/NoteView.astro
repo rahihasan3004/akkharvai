@@ -1,0 +1,53 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+import { notes } from '../data/notes';
+import { rahat } from '../data/lab';
+import { formatDate } from '../lib/format';
+import { site } from '../site.config';
+
+interface Props { lang: Lang; slug: string }
+const { lang, slug } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const n = notes.find((x) => x.slug === slug)!;
+const others = notes.filter((x) => x.slug !== slug);
+const ld = {
+  '@context': 'https://schema.org', '@type': 'BlogPosting', headline: n.title[lang], description: n.summary[lang],
+  datePublished: n.date, inLanguage: lang, author: { '@type': 'Person', '@id': `${site.url}/people/rahat-hasan/#person`, name: 'Rahat Hasan' },
+  publisher: { '@id': `${site.url}/#org` }, url: new URL(pathFor(lang, `/notes/${slug}/`), site.url).href,
+  isBasedOn: n.sources.map((s) => s.href),
+};
+---
+<Base lang={lang} title={n.title[lang]} description={n.summary[lang]} jsonld={[ld]} ogType="article">
+  <PageHeader lang={lang} crumbs={[{ label: L('Notes', 'নোট'), href: '/notes/' }, { label: n.title[lang] }]} eyebrow={L('Lab note', 'ল্যাব নোট')} title={n.title[lang]} lead={n.summary[lang]}>
+    <p class="byline meta">
+      <a href={pathFor(lang, '/people/rahat-hasan/')}>{rahat.name[lang]}</a> · <time datetime={n.date}>{formatDate(lang, n.date)}</time>
+    </p>
+    {n.draft && <p class="draft sans">{L('Draft for author review. Adapted from Rahat Hasan’s writing in the sources listed below; not yet approved for publication.', 'লেখকের পর্যালোচনার জন্য খসড়া। নিচে উল্লিখিত উৎসে রাহাত হাসানের লেখা থেকে রূপান্তরিত; প্রকাশের জন্য এখনো অনুমোদিত নয়।')}</p>}
+  </PageHeader>
+  <div class="container">
+    <article class="prose essay">
+      {n.body[lang].map((p) => <p>{p}</p>)}
+      <h2>{L('Sources', 'উৎস')}</h2>
+      <ul class="sources">{n.sources.map((s) => <li><a href={s.href} lang="en">{s.label}</a></li>)}</ul>
+    </article>
+    {others.length > 0 && (
+      <aside class="more" aria-labelledby="more-h">
+        <h2 id="more-h" class="meta">{L('More notes', 'আরও নোট')}</h2>
+        <ul>{others.map((o) => <li><a href={pathFor(lang, `/notes/${o.slug}/`)}>{o.title[lang]}</a></li>)}</ul>
+      </aside>
+    )}
+  </div>
+</Base>
+<style>
+  .byline { margin-top: var(--s-5); }
+  .draft { margin-top: var(--s-4); font-size: var(--fs-2); border-left: 4px solid var(--red); padding-left: var(--s-3); max-width: var(--measure); }
+  .essay { max-width: var(--measure); border-top: 1px solid var(--ink); padding-top: var(--s-6); font-size: 1.1875rem; }
+  .essay h2 { font-size: var(--fs-4); }
+  .sources { font-family: var(--font-sans); font-size: var(--fs-2); }
+  .more { max-width: var(--measure); border-top: var(--hairline); margin-block: var(--s-7) var(--s-8); padding-top: var(--s-4); }
+  .more h2 { font-weight: 500; margin-bottom: var(--s-2); }
+  .more ul { list-style: none; padding: 0; }
+  .more a { font-family: var(--font-serif); font-size: var(--fs-4); font-weight: 600; }
+</style>

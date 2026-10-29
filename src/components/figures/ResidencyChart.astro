@@ -1,0 +1,63 @@
+---
+/**
+ * File tokens resident in the prompt per agent turn, for one ~4,000-token file read every turn.
+ * Values: HashedContext v0.2 (Hasan 2026), turn-by-turn residency trace; turn 5 reproduces the
+ * measured 20,000 → 4,140 file tokens on DeepSeek V4.
+ */
+import { num, type Lang } from '../../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const fmt = (n: number) => num(lang, n.toLocaleString('en-US'));
+const conv = [4000, 8000, 12000, 16000, 20000];
+const hc = [4000, 4035, 4070, 4105, 4140];
+const W = 640, H = 330, x0 = 64, x1 = 624, y0 = 24, y1 = 270, max = 20000;
+const y = (v: number) => y1 - (v / max) * (y1 - y0);
+const group = (x1 - x0) / 5;
+const bw = 34;
+const ticks = [0, 5000, 10000, 15000, 20000];
+---
+<svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-labelledby="rc-t rc-d">
+  <title id="rc-t">{L('File tokens in the prompt per turn: append-only versus HashedContext', 'প্রতি ধাপে প্রম্পটে ফাইল টোকেন: অ্যাপেন্ড-অনলি বনাম HashedContext')}</title>
+  <desc id="rc-d">{L(
+    'Append-only context grows from 4,000 to 20,000 file tokens over five turns. HashedContext stays between 4,000 and 4,140.',
+    'অ্যাপেন্ড-অনলি কনটেক্সট পাঁচ ধাপে ৪,০০০ থেকে ২০,০০০ ফাইল টোকেনে বাড়ে। HashedContext থাকে ৪,০০০ থেকে ৪,১৪০-এর মধ্যে।'
+  )}</desc>
+  {ticks.map((t) => (
+    <g>
+      <line x1={x0} x2={x1} y1={y(t)} y2={y(t)} class={t === 0 ? 'axis' : 'grid'} />
+      <text x={x0 - 8} y={y(t) + 4} text-anchor="end" class="tick">{fmt(t)}</text>
+    </g>
+  ))}
+  {conv.map((c, i) => {
+    const gx = x0 + group * i + group / 2;
+    return (
+      <g>
+        <rect x={gx - bw - 2} y={y(c)} width={bw} height={y1 - y(c)} class="conv" />
+        <rect x={gx + 2} y={y(hc[i])} width={bw} height={y1 - y(hc[i])} class="hc" />
+        <text x={gx - bw / 2 - 2} y={y(c) - 6} text-anchor="middle" class="val">{fmt(c)}</text>
+        <text x={gx + bw / 2 + 2} y={y(hc[i]) - 6} text-anchor="middle" class="val strong">{fmt(hc[i])}</text>
+        <text x={gx} y={y1 + 20} text-anchor="middle" class="tick">{L(`Turn ${i + 1}`, `ধাপ ${num(lang, i + 1)}`)}</text>
+      </g>
+    );
+  })}
+  <text x={x0} y={H - 6} class="tick">{L('File tokens resident in the prompt', 'প্রম্পটে থাকা ফাইল টোকেন')}</text>
+</svg>
+<p class="legend meta">
+  <span class="k conv-k" aria-hidden="true"></span>{L('Append-only context (conventional agents)', 'অ্যাপেন্ড-অনলি কনটেক্সট (প্রচলিত এজেন্ট)')}
+  <span class="k hc-k" aria-hidden="true"></span>HashedContext
+</p>
+<style>
+  .chart { width: 100%; height: auto; min-width: 30rem; font-family: var(--font-sans); }
+  .grid { stroke: var(--rule); stroke-width: 1; }
+  .axis { stroke: var(--ink); stroke-width: 1; }
+  .tick { fill: var(--ink-2); font-size: 12px; }
+  .val { fill: var(--ink-2); font-size: 11px; }
+  .val.strong { fill: var(--ink); font-weight: 500; }
+  .conv { fill: var(--rule); stroke: var(--ink-2); stroke-width: 1; }
+  .hc { fill: var(--green); }
+  .legend { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); margin-top: var(--s-2); }
+  .k { display: inline-block; width: 0.9rem; height: 0.9rem; }
+  .conv-k { background: var(--rule); border: 1px solid var(--ink-2); }
+  .hc-k { background: var(--green); margin-left: var(--s-4); }
+</style>

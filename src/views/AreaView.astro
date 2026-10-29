@@ -1,0 +1,129 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import StackFigure from '../components/figures/StackFigure.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+import { projects, areas, publications, plannedLayers, type AreaSlug } from '../data/lab';
+import { formatDate } from '../lib/format';
+import { site } from '../site.config';
+
+interface Props { lang: Lang; slug: AreaSlug }
+const { lang, slug } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const a = areas[slug];
+const isBn = slug === 'bengali-native-computing';
+const own = projects.filter((p) => p.area === slug);
+const pubs = publications.filter((p) => p.area === slug);
+const ld = {
+  '@context': 'https://schema.org', '@type': 'CollectionPage', name: a.title.en, description: a.summary.en,
+  url: new URL(pathFor(lang, `/research/${slug}/`), site.url).href, isPartOf: { '@id': `${site.url}/#website` },
+  hasPart: own.map((p) => ({ '@type': 'CreativeWork', name: p.name.en, url: new URL(`/projects/${p.slug}/`, site.url).href })),
+};
+---
+<Base lang={lang} title={a.title[lang]} description={a.summary[lang]} jsonld={[ld]}>
+  <PageHeader lang={lang} crumbs={[{ label: L('Research', 'গবেষণা'), href: '/research/' }, { label: a.title[lang] }]} eyebrow={a.short[lang]} title={a.title[lang]} lead={a.summary[lang]} />
+
+  {isBn ? (
+    <>
+      <Section id="problem" title={L('The problem', 'সমস্যা')}>
+        <div class="prose measure">
+          <p>{L(
+            'Every layer of a modern computer assumes English: instruction mnemonics, assembly syntax, number notation, programming languages, kernels and file systems. To program a computer, a person first has to learn the language the computer was built in. Bangladesh alone has more than 200 million Bengali speakers.',
+            'আধুনিক কম্পিউটারের প্রতিটি স্তর ইংরেজি ধরে নেয়: নির্দেশের নাম, অ্যাসেম্বলির সিনট্যাক্স, সংখ্যা লেখার রীতি, প্রোগ্রামিং ভাষা, কার্নেল ও ফাইল সিস্টেম। কম্পিউটার প্রোগ্রাম করতে হলে আগে সেই ভাষা শিখতে হয়, যে ভাষায় কম্পিউটারটি বানানো। শুধু বাংলাদেশেই বাংলাভাষী মানুষ ২০ কোটির বেশি।'
+          )}</p>
+          <p>{L(
+            'Translating the surface does not change this. A Bengali keyword layer on top of an English toolchain still leaves English everywhere underneath: in error messages, in the numbers the machine prints, in the instruction set itself.',
+            'ওপরের স্তর অনুবাদ করলে এটি বদলায় না। ইংরেজি টুলচেইনের ওপর বাংলা শব্দের একটি স্তর বসালেও নিচের সব জায়গায় ইংরেজিই থেকে যায়: ত্রুটিবার্তায়, যন্ত্রের দেখানো সংখ্যায়, এমনকি নির্দেশনা-সেটেও।'
+          )}</p>
+        </div>
+      </Section>
+      <Section id="approach" title={L('Approach', 'পদ্ধতি')} note={L('Bottom up, one layer at a time, each designed in Bengali from first principles.', 'নিচ থেকে ওপরে, একটি একটি করে স্তর; প্রতিটি মৌলিক নীতি থেকে বাংলায় নকশা করা।')}>
+        <div class="prose measure">
+          <p>{L(
+            'The work starts at the lowest level a programmer can see, the instruction set, and builds upward. The processor architecture, its number system, the assembler, the simulator and the toolchain all exist today. Each is designed in Bengali rather than renamed from an English original.',
+            'কাজ শুরু হয় প্রোগ্রামারের দেখা সবচেয়ে নিচের স্তর, নির্দেশনা-সেট থেকে, তারপর ওপরের দিকে। প্রসেসর স্থাপত্য, এর সংখ্যা পদ্ধতি, অ্যাসেম্বলার, সিমুলেটর ও টুলচেইন আজ বাস্তবে আছে। প্রতিটিই ইংরেজি মূল থেকে নাম বদলে নয়, বাংলাতেই নকশা করা।'
+          )}</p>
+        </div>
+        <div class="fig"><StackFigure lang={lang} /></div>
+      </Section>
+    </>
+  ) : (
+    <>
+      <Section id="problem" title={L('The problem', 'সমস্যা')}>
+        <div class="prose measure">
+          <p>{L(
+            'AI coding agents work in long loops: read files, edit, test, read again. Because they cannot be sure a file is unchanged, they usually resend it in full on every turn. Prompt size grows with the number of files, their length and the number of turns.',
+            'এআই কোডিং এজেন্ট দীর্ঘ চক্রে কাজ করে: ফাইল পড়া, সম্পাদনা, পরীক্ষা, আবার পড়া। ফাইলটি অপরিবর্তিত কি না নিশ্চিত হতে না পারায় এরা সাধারণত প্রতিটি ধাপে পুরো ফাইলটি আবার পাঠায়। প্রম্পটের আকার বাড়ে ফাইলের সংখ্যা, দৈর্ঘ্য ও ধাপের সংখ্যার সঙ্গে।'
+          )}</p>
+          <p>{L(
+            'Every repeated token is paid for, occupies GPU memory in the key-value cache, slows decoding and leaves fewer seats for other users of the same GPU. The model also sees stale versions of files it is editing.',
+            'প্রতিটি পুনরাবৃত্ত টোকেনের দাম দিতে হয়, এটি কি-ভ্যালু ক্যাশে জিপিইউ মেমরি দখল করে, ডিকোডিং ধীর করে, এবং একই জিপিইউতে অন্য ব্যবহারকারীদের জায়গা কমায়। মডেলও যে ফাইল সম্পাদনা করছে তার পুরোনো সংস্করণ দেখে।'
+          )}</p>
+        </div>
+      </Section>
+      <Section id="approach" title={L('Approach', 'পদ্ধতি')} note={L('Content addressing: identify each file by the hash of its bytes, and send a file only when that hash changes.', 'কনটেন্ট অ্যাড্রেসিং: প্রতিটি ফাইলকে তার বাইটের হ্যাশ দিয়ে চেনা, এবং হ্যাশ বদলালেই কেবল ফাইল পাঠানো।')}>
+        <ol class="line">
+          <li><time class="meta" datetime="2026-06-25">{formatDate(lang, '2026-06-25')}</time><div><a href={pathFor(lang, '/projects/zrcp/')}>ZRCP 1.0.0</a><p>{L('Defines four mechanisms: hash-gated transmission, history deduplication, hash stubs and attention-anchored rebasing. Validated on one workflow against an estimated baseline.', 'চারটি কৌশল সংজ্ঞায়িত করে: হ্যাশ-যাচাইকৃত প্রেরণ, ইতিহাস থেকে পুনরাবৃত্তি বাদ, হ্যাশ-স্টাব ও মনোযোগ-নোঙর পুনর্বিন্যাস। একটি কাজে অনুমিত ভিত্তির সঙ্গে তুলনা করে যাচাই করা।')}</p></div></li>
+          <li><time class="meta" datetime="2026-10-27">{formatDate(lang, '2026-10-27')}</time><div><a href={pathFor(lang, '/projects/hashedcontext/')}>HashedContext v0.2</a><p>{L('Extends the idea to GPU memory and serving: 35-token stubs, a local content-addressed vault, a formal cost model, and measured results on DeepSeek V4 against a measured baseline.', 'ধারণাটিকে জিপিইউ মেমরি ও সার্ভিং পর্যন্ত বিস্তৃত করে: ৩৫ টোকেনের স্টাব, স্থানীয় কনটেন্ট-অ্যাড্রেসড ভল্ট, আনুষ্ঠানিক খরচ-মডেল, এবং মাপা ভিত্তির তুলনায় ডিপসিক ভি৪-এ মাপা ফলাফল।')}</p></div></li>
+        </ol>
+      </Section>
+    </>
+  )}
+
+  <Section id="projects" title={L('Projects', 'প্রকল্প')}>
+    <ul class="rows">
+      {own.map((p) => (
+        <li>
+          <a class="nm" href={pathFor(lang, `/projects/${p.slug}/`)}>{p.name[lang]}</a>
+          <span class="meta">{p.kind[lang]} · {p.status[lang]}</span>
+          <p>{p.summary[lang]}</p>
+        </li>
+      ))}
+    </ul>
+  </Section>
+
+  <Section id="next" title={L('What comes next', 'এরপর যা আসছে')}>
+    {isBn ? (
+      <ul class="rows">
+        {plannedLayers.map((x) => (
+          <li><span class="nm plain">{x.name[lang]}</span><span class="meta">{x.layer[lang]} · {x.status[lang]}</span><p>{x.text[lang]}</p></li>
+        ))}
+      </ul>
+    ) : (
+      <ul class="rows">
+        <li><span class="nm plain">{L('HashedContext: extended benchmarks', 'HashedContext: বিস্তৃত পরিমাপ')}</span><span class="meta">{L('In progress', 'চলছে')}</span><p>{L('More models, tasks and session lengths.', 'আরও মডেল, কাজ ও সেশনের দৈর্ঘ্যে পরীক্ষা।')}</p></li>
+        <li><span class="nm plain">{L('HashedContext: reference implementation and arXiv submission', 'HashedContext: রেফারেন্স বাস্তবায়ন ও আর্কাইভে জমা')}</span><span class="meta">{L('Planned', 'পরিকল্পিত')}</span></li>
+        <li><span class="nm plain">ZRCP-SELECT (V4)</span><span class="meta">{L('Planned', 'পরিকল্পিত')}</span><p>{L('Task-aware selection of which files enter the prompt.', 'কাজ অনুযায়ী কোন ফাইল প্রম্পটে ঢুকবে তা নির্বাচন।')}</p></li>
+        <li><span class="nm plain">{L('Akkhar-Druti-1', 'অক্ষর-দ্রুতি-১')}</span><span class="meta">{L('In research', 'গবেষণা পর্যায়ে')}</span><p>{L('A Bengali-first AI model. No details have been published yet.', 'একটি বাংলা-প্রথম এআই মডেল। এখনো কোনো বিবরণ প্রকাশিত হয়নি।')}</p></li>
+      </ul>
+    )}
+  </Section>
+
+  <Section id="publications" title={L('Publications', 'প্রকাশনা')}>
+    <ul class="rows">
+      {pubs.map((p) => (
+        <li>
+          <a class="nm" href={pathFor(lang, `/publications/${p.slug}/`)} lang={lang === 'bn' && p.titleBn ? 'bn' : 'en'}>{lang === 'bn' && p.titleBn ? p.titleBn : p.title}</a>
+          <span class="meta">{formatDate(lang, p.date)} · {p.type[lang]}{p.doi ? ` · DOI ${p.doi}` : ''}</span>
+        </li>
+      ))}
+    </ul>
+    {isBn && <p class="sans more"><a href={pathFor(lang, '/ekushey/')}>{L('Why this project is called Ekushey', 'এই প্রকল্পের নাম কেন একুশে')}</a></p>}
+  </Section>
+</Base>
+
+<style>
+  .fig { margin-top: var(--s-6); }
+  .rows { list-style: none; padding: 0; border-top: var(--hairline); }
+  .rows li { display: flex; flex-direction: column; gap: var(--s-1); padding-block: var(--s-4); border-bottom: var(--hairline); }
+  .rows p { max-width: var(--measure); }
+  .nm { font-family: var(--font-serif); font-weight: 600; font-size: var(--fs-4); line-height: 1.3; }
+  .nm.plain { color: var(--ink); }
+  .line { list-style: none; padding: 0; border-left: 2px solid var(--ink); }
+  .line li { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-1) var(--gutter); padding: var(--s-3) 0 var(--s-5) var(--s-5); }
+  @media (min-width: 640px) { .line li { grid-template-columns: 10rem minmax(0, 1fr); } }
+  .line a { font-family: var(--font-serif); font-weight: 600; font-size: var(--fs-4); }
+  .line p { margin-top: var(--s-1); max-width: var(--measure); }
+  .more { margin-top: var(--s-4); font-size: var(--fs-2); }
+</style>

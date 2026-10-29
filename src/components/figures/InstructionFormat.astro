@@ -1,0 +1,48 @@
+---
+/** The 16-bit 4-4-8 instruction format with the specification's own example (section 4.1). */
+import { num, type Lang } from '../../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+// স্থানান্তর সাময়িক-১, ১০ → ০০০১ ০০০১ ০০০০১০১০ (Nirdeshika-16 specification, 4.1)
+const bits = '0001000100001010'.split('');
+const toBn = (b: string) => (b === '1' ? '১' : '০');
+const fields = [
+  { name: L('Opcode', 'ওকোড'), range: L('bits 15–12', 'বিট ১৫–১২'), span: 4, value: L('স্থানান্তর = 1', 'স্থানান্তর = ১') },
+  { name: L('Register', 'সাময়িক আইডি'), range: L('bits 11–8', 'বিট ১১–৮'), span: 4, value: L('সাময়িক-১ = 1', 'সাময়িক-১ = ১') },
+  { name: L('Value or address', 'মান বা ঠিকানা'), range: L('bits 7–0', 'বিট ৭–০'), span: 8, value: L('১০ = 10', '১০') },
+];
+---
+<div class="fmt" role="img" aria-label={L('A 16-bit instruction: bits 15 to 12 hold the opcode, bits 11 to 8 the register, bits 7 to 0 a value or address. Example: স্থানান্তর সাময়িক-১, ১০ encodes as 0001 0001 00001010.', '১৬-বিটের একটি নির্দেশ: বিট ১৫ থেকে ১২ ওকোড, ১১ থেকে ৮ সাময়িক, ৭ থেকে ০ মান বা ঠিকানা। উদাহরণ: স্থানান্তর সাময়িক-১, ১০ এর রূপ ০০০১ ০০০১ ০০০০১০১০।')}>
+  <p class="src-line" lang="bn">স্থানান্তর সাময়িক-১, ১০ ।</p>
+  <div class="row index" aria-hidden="true">
+    {bits.map((_, i) => <span>{num(lang, 15 - i)}</span>)}
+  </div>
+  <div class="row cells" aria-hidden="true">
+    {bits.map((b, i) => <span class:list={['bit', { edge: i === 3 || i === 7 }]} lang="bn">{lang === 'bn' ? toBn(b) : b}</span>)}
+  </div>
+  <div class="row fields" aria-hidden="true">
+    {fields.map((f) => (
+      <span class="field" style={`grid-column: span ${f.span}`}>
+        <strong>{f.name}</strong>
+        <span class="meta">{f.range}</span>
+        <span class="val" lang="bn">{f.value}</span>
+      </span>
+    ))}
+  </div>
+</div>
+<style>
+  .fmt { min-width: 34rem; }
+  .src-line { font-family: var(--font-mono); font-size: var(--fs-4); margin-bottom: var(--s-4); }
+  .row { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); }
+  .index span { font-family: var(--font-sans); font-size: 0.75rem; color: var(--ink-2); text-align: center; }
+  .cells { border: 1px solid var(--ink); }
+  .bit { font-family: var(--font-mono); font-size: var(--fs-3); text-align: center; padding-block: var(--s-2); border-right: 1px solid var(--rule); }
+  .bit:last-child { border-right: 0; }
+  .bit.edge { border-right: 2px solid var(--ink); }
+  .fields { margin-top: var(--s-2); gap: 0; }
+  .field { display: flex; flex-direction: column; padding: var(--s-2) var(--s-2) 0; border-left: 2px solid var(--ink); font-family: var(--font-sans); font-size: var(--fs-1); }
+  .field:first-child { border-left-color: var(--green); }
+  .field strong { font-weight: 500; font-size: var(--fs-2); }
+  .val { font-family: var(--font-mono); margin-top: var(--s-1); }
+</style>

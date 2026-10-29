@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base lang="en" title="Page not found" description="This page does not exist on akkharlabs.com." noindex>
+  <div class="container measure nf">
+    <h1>Page not found</h1>
+    <p>There is no page at this address. It may have moved, or the link may be mistyped.</p>
+    <p lang="bn">এই ঠিকানায় কোনো পাতা নেই। পাতাটি সরানো হয়ে থাকতে পারে, অথবা লিংকটি ভুল লেখা হয়েছে।</p>
+    <p class="sans"><a href="/">Akkhar Labs home</a> · <a href="/bn/" lang="bn">প্রথম পাতা</a></p>
+  </div>
+</Base>
+<style>
+  .nf { padding-block: var(--s-8); }
+  .nf > * + * { margin-top: var(--s-4); }
+</style>

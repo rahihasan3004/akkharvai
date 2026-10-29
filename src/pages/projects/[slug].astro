@@ -1,0 +1,7 @@
+---
+import { projectPages } from '../../projects/registry';
+import { projects } from '../../data/lab';
+export function getStaticPaths() { return projects.map((p) => ({ params: { slug: p.slug } })); }
+const Page = projectPages[Astro.params.slug as keyof typeof projectPages];
+---
+<Page lang="en" />

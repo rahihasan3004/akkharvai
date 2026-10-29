@@ -1,0 +1,78 @@
+---
+import ProjectLayout from '../layouts/ProjectLayout.astro';
+import Figure from '../components/figures/Figure.astro';
+import Pipeline from '../components/figures/Pipeline.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { pathFor, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L = (en: string, bn: string) => (lang === 'bn' ? bn : en);
+const copy = { copyLabel: L('Copy', 'কপি'), copiedLabel: L('Copied', 'কপি হয়েছে') };
+
+// examples/লুপ.বয়ন from akkhar-labs/Boyon, unchanged.
+const loop = `আদান সাময়িক-১ ৫
+
+শুরু:
+প্রদর্শন সাময়িক-১
+সাম্য-প্রস্থান শেষ
+বিয়োজন সাময়িক-১ ১
+প্রস্থান শুরু
+
+শেষ:
+থামো`;
+const build = `gcc -Iinclude src/*.c -o bin/boyon
+./bin/boyon examples/গণিত.বয়ন`;
+
+const toc = [
+  { id: 'overview', label: L('Overview', 'সারকথা') },
+  { id: 'example', label: L('A first program', 'প্রথম প্রোগ্রাম') },
+  { id: 'syntax', label: L('Syntax', 'সিনট্যাক্স') },
+  { id: 'how', label: L('How it assembles', 'যেভাবে অ্যাসেম্বল করে') },
+  { id: 'build', label: L('Build and run', 'বিল্ড ও চালানো') },
+];
+---
+<ProjectLayout
+  lang={lang} slug="boyon" toc={toc} schemaType="SoftwareSourceCode"
+  description={L(
+    'Boyon is the assembler for Nirdeshika-16. It reads Bengali assembly in .বয়ন files and writes 16-bit machine code to .ব files, in two passes, in C.',
+    'বয়ন নির্দেশিকা-১৬-এর অ্যাসেম্বলার। এটি .বয়ন ফাইলের বাংলা অ্যাসেম্বলি পড়ে দুই ধাপে ১৬-বিট মেশিন কোড .ব ফাইলে লেখে; সি ভাষায় লেখা।'
+  )}
+  extraMeta={[{ label: L('Input · output', 'ইনপুট · আউটপুট'), value: '.বয়ন → .ব', lang: 'bn' }]}
+>
+  <h2 id="overview">{L('Overview', 'সারকথা')}</h2>
+  <p>{L(
+    'Boyon turns Bengali instructions into machine code a Nirdeshika-16 processor can run. You write a program in a plain text file with the extension .বয়ন; Boyon produces a binary with the extension .ব, ready for the Shimu simulator or future hardware.',
+    'বয়ন বাংলা নির্দেশকে এমন মেশিন কোডে রূপান্তর করে, যা নির্দেশিকা-১৬ প্রসেসর চালাতে পারে। আপনি .বয়ন প্রত্যয়ের একটি সাধারণ লেখা-ফাইলে প্রোগ্রাম লেখেন; বয়ন তৈরি করে .ব প্রত্যয়ের একটি বাইনারি, যা শিমু সিমুলেটর বা ভবিষ্যতের হার্ডওয়্যারে চালানো যায়।'
+  )}</p>
+  <Figure wide caption={L('Figure 1. Where Boyon sits in the toolchain.', 'চিত্র ১. টুলচেইনে বয়নের অবস্থান।')}>
+    <Pipeline lang={lang} />
+  </Figure>
+
+  <h2 id="example">{L('A first program', 'প্রথম প্রোগ্রাম')}</h2>
+  <p>{L('This program ships with Boyon as examples/লুপ.বয়ন. It counts down from five, printing each value, and stops at zero.', 'এই প্রোগ্রামটি বয়নের সঙ্গে examples/লুপ.বয়ন নামে আসে। এটি পাঁচ থেকে উল্টো দিকে গোনে, প্রতিটি মান দেখায় এবং শূন্যে থামে।')}</p>
+  <CodeBlock code={loop} label="লুপ.বয়ন" {...copy} />
+  <p>{L('Shimu prints ৫, ৪, ৩, ২, ১ and ০, then halts. ', 'শিমু ৫, ৪, ৩, ২, ১ ও ০ দেখিয়ে থেমে যায়। ')}<a href={pathFor(lang, '/projects/nirdeshika-16/playground/')}>{L('Run it in your browser', 'আপনার ব্রাউজারে চালিয়ে দেখুন')}</a>.</p>
+
+  <h2 id="syntax">{L('Syntax', 'সিনট্যাক্স')}</h2>
+  <ul>
+    <li><strong>{L('Instructions', 'নির্দেশ')}</strong> {L('are Bengali words, such as ', 'বাংলা শব্দ, যেমন ')}<code lang="bn">আদান</code>, <code lang="bn">সংযোজন</code>, <code lang="bn">প্রস্থান</code>, <code lang="bn">থামো</code>.</li>
+    <li><strong>{L('Registers', 'সাময়িক')}</strong> {L('are written ', 'লেখা হয় ')}<code lang="bn">সাময়িক-০</code> {L('to', 'থেকে')} <code lang="bn">সাময়িক-১৫</code>{L('; ', '; ')}<code lang="bn">ন-নি</code>, <code lang="bn">শ-নি</code> {L('and', 'ও')} <code lang="bn">অ-সা</code> {L('name the program counter, stack pointer and status register.', 'যথাক্রমে প্রোগ্রাম কাউন্টার, স্ট্যাক পয়েন্টার ও অবস্থা-সাময়িক।')}</li>
+    <li><strong>{L('Numbers', 'সংখ্যা')}</strong> {L('may be Bengali decimal (', 'হতে পারে বাংলা দশমিক (')}<code lang="bn">২৫</code>{L('), Akkhar-Hex with ', '), ')}<code lang="bn">০ষ</code>{L(' (', ' উপসর্গসহ অক্ষর-হেক্স (')}<code lang="bn">০ষ০ক</code>{L('), binary with ', '), ')}<code lang="bn">০ব</code>{L(' (', ' উপসর্গসহ বাইনারি (')}<code lang="bn">০ব০০০১০১০১</code>{L('), or ASCII digits.', '), অথবা ইংরেজি অঙ্ক।')}</li>
+    <li><strong>{L('Labels', 'লেবেল')}</strong> {L('end with a colon, ', 'শেষ হয় কোলনে, যেমন ')}<code lang="bn">শুরু:</code>{L(', and can be used before they are defined.', '; সংজ্ঞায়িত হওয়ার আগেও ব্যবহার করা যায়।')}</li>
+    <li><strong>{L('Comments', 'মন্তব্য')}</strong> {L('start with ', 'শুরু হয় ')}<code>--</code>{L(' and run to the end of the line. Commas between operands are optional.', ' দিয়ে, চলে লাইনের শেষ পর্যন্ত। উপাদানের মাঝে কমা ঐচ্ছিক।')}</li>
+  </ul>
+
+  <h2 id="how">{L('How it assembles', 'যেভাবে অ্যাসেম্বল করে')}</h2>
+  <ol>
+    <li>{L('The lexer reads the source as UTF-8 and normalises the two Unicode spellings of য় to one, so words typed on different Bengali keyboards match.', 'লেক্সার সোর্সকে ইউটিএফ-৮ হিসেবে পড়ে এবং য়-এর দুই রকম ইউনিকোড বানানকে এক রূপে আনে, যাতে ভিন্ন ভিন্ন বাংলা কিবোর্ডে লেখা শব্দ মিলে যায়।')}</li>
+    <li>{L('The first pass records every label and its address. Each instruction occupies two bytes; the symbol table holds up to 256 labels, and a duplicate label produces a warning.', 'প্রথম ধাপে প্রতিটি লেবেল ও তার ঠিকানা লিখে রাখা হয়। প্রতিটি নির্দেশ দুই বাইট জায়গা নেয়; প্রতীক-সারণিতে সর্বোচ্চ ২৫৬টি লেবেল থাকে, আর একই লেবেল দুবার থাকলে সতর্কবার্তা দেখায়।')}</li>
+    <li>{L('The second pass encodes each instruction as opcode, register and 8-bit value, resolves label references, and writes 16-bit words in little-endian order.', 'দ্বিতীয় ধাপে প্রতিটি নির্দেশকে ওকোড, সাময়িক ও ৮-বিট মানে এনকোড করা হয়, লেবেলের উল্লেখ মেলানো হয়, এবং ১৬-বিটের শব্দগুলো লিটল-এন্ডিয়ান ক্রমে লেখা হয়।')}</li>
+    <li>{L('A debug log, ডিবাগ_লগ.txt, lists every label and every instruction with its machine code in Akkhar-Hex.', 'একটি ডিবাগ লগ, ডিবাগ_লগ.txt, প্রতিটি লেবেল এবং প্রতিটি নির্দেশ ও তার মেশিন কোড অক্ষর-হেক্সে তালিকাভুক্ত করে।')}</li>
+  </ol>
+
+  <h2 id="build">{L('Build and run', 'বিল্ড ও চালানো')}</h2>
+  <p>{L('Boyon is plain C and builds with GCC. From the repository root:', 'বয়ন সাধারণ সি-তে লেখা এবং জিসিসি দিয়ে বিল্ড হয়। রিপোজিটরির মূল ফোল্ডার থেকে:')}</p>
+  <CodeBlock code={build} label={L('Terminal', 'টার্মিনাল')} {...copy} />
+  <p>{L('This writes examples/generated/গণিত.ব. The easier route is the ', 'এতে examples/generated/গণিত.ব তৈরি হয়। আরও সহজ পথ হলো ')}<a href={pathFor(lang, '/projects/nirdeshika-sdk/')}>{L('Nirdeshika SDK', 'নির্দেশিকা এসডিকে')}</a>{L(', which builds and runs Boyon and Shimu for you.', ', যা আপনার হয়ে বয়ন ও শিমু বিল্ড করে চালায়।')}</p>
+</ProjectLayout>
